@@ -78,14 +78,14 @@
                         Manage Users
                     </a>
                 </li>
-
+<!-- 
                 <li>
                     <a href="{{ url('/admin/processed-samples') }}"
                        class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
                         <i data-feather="check-square" class="w-5 h-5 mr-2 text-gray-500"></i>
                         Processed Samples
                     </a>
-                </li>
+                </li> -->
 
                 <li>
                     <a href="{{ url('/admin/basic-analysis') }}"
@@ -183,11 +183,11 @@
                             <div id="userDropdown"
                                  class="hidden absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
 
-                                <a href="#"
+                                <!-- <a href="#"
                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i data-feather="user" class="w-4 h-4 text-gray-500"></i>
                                     My Profile
-                                </a>
+                                </a> -->
 
                                 <a href="{{ url('/settings') }}"
                                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

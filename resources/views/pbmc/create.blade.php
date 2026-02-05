@@ -425,7 +425,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                AverageViableCells
+                                Average Viable Cells
                             </label>
                             <input type="text" readonly id="out_avg_viable_cells"
                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
@@ -455,7 +455,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                CellCountConcentration
+                                Cell Count Concentration (×10<sup>6</sup>/mL)
                             </label>
                             <input type="text" readonly id="out_cell_count_concentration"
                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
@@ -463,7 +463,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                TotalCellNumber
+                                Total Cell Number (×10<sup>6</sup>)
                             </label>
                             <input type="text" readonly id="out_total_cell_number"
                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
@@ -471,27 +471,17 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Estimated CPS Resuspension Volume (V1)
-                            </label>
-                            <input type="text" readonly id="out_estimated_cps_volume"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
-                            <p class="mt-1 text-xs text-gray-500">V1 = Total Cell Number / 15 (rounded to nearest whole mL)</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Final CPS Resuspension Volume (Vf)
                             </label>
-                            <input type="number" step="1" min="0" id="final_cps_resuspension_volume" name="final_cps_resuspension_volume"
+                            <input type="text" readonly id="final_cps_resuspension_volume" name="final_cps_resuspension_volume"
                                    value="{{ old('final_cps_resuspension_volume') }}"
-                                   placeholder="Enter final CPS volume (whole mL)"
-                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
-                            <p class="mt-1 text-xs text-gray-500">Enter the actual final volume used (used to calculate cells per vial).</p>
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                            <p class="mt-1 text-xs text-gray-500">Vf = Total Cell Number / 15,000,000</p>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Actual Number of Cells per Vial (N2)
+                                Actual Number of Cells per Vial (N2) (×10<sup>6</sup>)
                             </label>
                             <input type="text" readonly id="out_cells_per_vial"
                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
@@ -504,9 +494,9 @@
                         • Average cell count per square = average of (NonViable + Viable) across 4 squares<br>
                         • Total Count = Avg per square × Haemocytometer factor × PBMC dilution factor<br>
                         • Viability % = (Avg viable cells) ÷ (Avg viable + Avg non-viable) × 100<br>
-                        • Cell Count Concentration = (Avg viable cells × 10 × 10,000) ÷ 1,000,000<br>
-                        • Total Cell Number = Cell Count Concentration × Counting Resuspension Volume<br>
-                        • Estimated CPS Volume (V1) = Total Cell Number ÷ 15 (rounded to nearest whole mL)<br>
+                        • <strong>Cell Count Concentration (×10⁶/mL) = (Avg viable cells × Haemocytometer factor × PBMC dilution factor) / 1,000,000</strong><br>
+                        • <strong>Total Cell Number (×10⁶) = Cell Count Concentration × Counting Resuspension Volume</strong><br>
+                        • Final CPS Resuspension Volume (Vf) = Total Cell Number ÷ 15,000,000<br>
                         • Cells per Vial (N2) = Total Cell Number ÷ Final CPS Resuspension Volume
                     </p>
                 </div>
@@ -808,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (avgViableEl) avgViableEl.value = fixed(avgViable, 2);
         if (sumTotalsEl) sumTotalsEl.value = fixed(totalSum, 0);
 
-        // outcomes
+        // Get factors
         const haem = num(document.getElementById('haemocytometer_factor')?.value);
         const dil  = num(document.getElementById('pbmc_dilution_factor')?.value);
 
@@ -821,18 +811,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // Viability % = avgViable / (avgViable + avgNon) × 100
         const viabilityPct = (avgViable + avgNon) > 0 ? (avgViable / (avgViable + avgNon)) * 100 : 0;
 
-        // Counting resuspension volume + Final CPS volume
+        // Counting resuspension volume
         const countingResusp = num(document.getElementById('counting_resuspension')?.value);
-        const finalCpsVol    = num(document.getElementById('final_cps_resuspension_volume')?.value);
 
-        // CellCountConcentration = (avg viable × 10 × 10000) / 1000000
-        const concentration = (avgViable * 10 * 10000) / 1000000;
+        // ✅ CORRECTED FORMULA:
+        // Cell Count Concentration (×10⁶/mL) = (avgViable × haem × dil) / 1,000,000
+        const concentration = (avgViable * haem * dil) / 1000000;
 
-        // Total cell number = concentration × counting resuspension volume
+        // ✅ Total Cell Number (×10⁶) = concentration × counting resuspension volume
         const totalCellNum = concentration * countingResusp;
 
-        // Estimated CPS volume (rounded to nearest whole mL)
-        const estimatedCpsVolume = totalCellNum > 0 ? Math.round(totalCellNum / 15) : 0;
+        // Final CPS resuspension volume (Vf) = Total Cell Number / 15,000,000
+        const finalCpsVol = totalCellNum > 0 ? (totalCellNum / 15) : 0;
 
         // Cells per vial = totalCellNum / finalCpsVol
         const cellsPerVial = finalCpsVol > 0 ? (totalCellNum / finalCpsVol) : 0;
@@ -843,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const el4 = document.getElementById('out_viability_percent');
         const el5 = document.getElementById('out_cell_count_concentration');
         const el6 = document.getElementById('out_total_cell_number');
-        const el7 = document.getElementById('out_estimated_cps_volume');
+        const el7 = document.getElementById('final_cps_resuspension_volume');
         const el8 = document.getElementById('out_cells_per_vial');
 
         if (el1) el1.value = fixed(outAvgPerSq, 2);
@@ -852,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (el4) el4.value = fixed(viabilityPct, 2);
         if (el5) el5.value = fixed(concentration, 2);
         if (el6) el6.value = countingResusp > 0 ? fixed(totalCellNum, 2) : '';
-        if (el7) el7.value = countingResusp > 0 ? estimatedCpsVolume : '';
+        if (el7) el7.value = countingResusp > 0 ? fixed(finalCpsVol, 3) : '';
         if (el8) el8.value = (countingResusp > 0 && finalCpsVol > 0) ? fixed(cellsPerVial, 2) : '';
     }
 
@@ -864,7 +854,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    ['haemocytometer_factor','pbmc_dilution_factor','counting_resuspension','final_cps_resuspension_volume']
+    ['haemocytometer_factor','pbmc_dilution_factor','counting_resuspension']
         .forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
