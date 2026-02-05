@@ -390,7 +390,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">PBMC Dilution Factor</label>
                             <input type="number" step="any" id="pbmc_dilution_factor" name="pbmc_dilution_factor"
-                                   value="{{ old('pbmc_dilution_factor', '10') }}"
+                                   value="{{ old('pbmc_dilution_factor', '2') }}"
                                    class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
                         </div>
                     </div>
@@ -442,16 +442,15 @@
                             </div>
                         </div>
 
-                        <!-- These two are inputs (so we can compute concentration + total cell number) -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                CountingReSuspension
+                                Counting Resuspension Volume (PBS)
                             </label>
                             <input type="number" step="any" min="0" id="counting_resuspension" name="counting_resuspension"
                                    value="{{ old('counting_resuspension') }}"
                                    placeholder="Enter resuspension volume"
                                    class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
-                            <p class="mt-1 text-xs text-gray-500">Used to compute concentration (Total Count / CountingReSuspension).</p>
+                            <p class="mt-1 text-xs text-gray-500">Volume used for resuspension (used to calculate Total Cell Number).</p>
                         </div>
 
                         <div>
@@ -464,29 +463,51 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Final CPS Resuspension Volume
-                            </label>
-                            <input type="number" step="any" min="0" id="final_cps_resuspension_volume" name="final_cps_resuspension_volume"
-                                   value="{{ old('final_cps_resuspension_volume') }}"
-                                   placeholder="Enter final CPS resuspension volume"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
-                            <p class="mt-1 text-xs text-gray-500">Used to compute TotalCellNumber (Concentration × Final CPS Volume).</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 TotalCellNumber
                             </label>
                             <input type="text" readonly id="out_total_cell_number"
                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Estimated CPS Resuspension Volume (V1)
+                            </label>
+                            <input type="text" readonly id="out_estimated_cps_volume"
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                            <p class="mt-1 text-xs text-gray-500">V1 = Total Cell Number / 15 (rounded to nearest whole mL)</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Final CPS Resuspension Volume (Vf)
+                            </label>
+                            <input type="number" step="1" min="0" id="final_cps_resuspension_volume" name="final_cps_resuspension_volume"
+                                   value="{{ old('final_cps_resuspension_volume') }}"
+                                   placeholder="Enter final CPS volume (whole mL)"
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
+                            <p class="mt-1 text-xs text-gray-500">Enter the actual final volume used (used to calculate cells per vial).</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Actual Number of Cells per Vial (N2)
+                            </label>
+                            <input type="text" readonly id="out_cells_per_vial"
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                            <p class="mt-1 text-xs text-gray-500">N2 = Total Cell Number (T) / Final CPS Resuspension Volume (Vf)</p>
+                        </div>
                     </div>
 
                     <p class="mt-4 text-xs text-gray-500">
-                        Notes on calculations:
-                        Average cell count per square = average of (NonViable + Viable) across 4 squares.
-                        Total Count = Avg per square × Haemocytometer factor × PBMC dilution factor.
-                        Viability % = (Avg viable ÷ Avg total) × 100.
+                        <strong>Calculation Formulas:</strong><br>
+                        • Average cell count per square = average of (NonViable + Viable) across 4 squares<br>
+                        • Total Count = Avg per square × Haemocytometer factor × PBMC dilution factor<br>
+                        • Viability % = (Avg viable cells) ÷ (Avg viable + Avg non-viable) × 100<br>
+                        • Cell Count Concentration = (Avg viable cells × 10 × 10,000) ÷ 1,000,000<br>
+                        • Total Cell Number = Cell Count Concentration × Counting Resuspension Volume<br>
+                        • Estimated CPS Volume (V1) = Total Cell Number ÷ 15 (rounded to nearest whole mL)<br>
+                        • Cells per Vial (N2) = Total Cell Number ÷ Final CPS Resuspension Volume
                     </p>
                 </div>
 
@@ -768,7 +789,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const v = num(viableInputs[i].value);
             const t = n + v;
 
-            totalInputs[i].value = t;
+            if (totalInputs[i]) totalInputs[i].value = t;
             nonSum += n;
             viableSum += v;
             totalSum += t;
@@ -795,17 +816,26 @@ document.addEventListener('DOMContentLoaded', function () {
         const outAvgPerSq = avgTotal;
 
         // Total Count -> avgTotal × haem × dil
-        const outTotalCount = avgTotal * (haem || 0) * (dil || 0);
+        const outTotalCount = avgTotal * haem * dil;
 
-        // Viability %
-        const viabilityPct = avgTotal > 0 ? (avgViable / avgTotal) * 100 : 0;
+        // Viability % = avgViable / (avgViable + avgNon) × 100
+        const viabilityPct = (avgViable + avgNon) > 0 ? (avgViable / (avgViable + avgNon)) * 100 : 0;
 
-        // concentration + total cell number (needs user inputs)
+        // Counting resuspension volume + Final CPS volume
         const countingResusp = num(document.getElementById('counting_resuspension')?.value);
         const finalCpsVol    = num(document.getElementById('final_cps_resuspension_volume')?.value);
 
-        const concentration = countingResusp > 0 ? (outTotalCount / countingResusp) : 0;
-        const totalCellNum  = finalCpsVol > 0 ? (concentration * finalCpsVol) : 0;
+        // CellCountConcentration = (avg viable × 10 × 10000) / 1000000
+        const concentration = (avgViable * 10 * 10000) / 1000000;
+
+        // Total cell number = concentration × counting resuspension volume
+        const totalCellNum = concentration * countingResusp;
+
+        // Estimated CPS volume (rounded to nearest whole mL)
+        const estimatedCpsVolume = totalCellNum > 0 ? Math.round(totalCellNum / 15) : 0;
+
+        // Cells per vial = totalCellNum / finalCpsVol
+        const cellsPerVial = finalCpsVol > 0 ? (totalCellNum / finalCpsVol) : 0;
 
         const el1 = document.getElementById('out_avg_cells_per_square');
         const el2 = document.getElementById('out_total_count');
@@ -813,13 +843,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const el4 = document.getElementById('out_viability_percent');
         const el5 = document.getElementById('out_cell_count_concentration');
         const el6 = document.getElementById('out_total_cell_number');
+        const el7 = document.getElementById('out_estimated_cps_volume');
+        const el8 = document.getElementById('out_cells_per_vial');
 
         if (el1) el1.value = fixed(outAvgPerSq, 2);
         if (el2) el2.value = fixed(outTotalCount, 2);
         if (el3) el3.value = fixed(avgViable, 2);
         if (el4) el4.value = fixed(viabilityPct, 2);
-        if (el5) el5.value = countingResusp > 0 ? fixed(concentration, 2) : '';
-        if (el6) el6.value = (countingResusp > 0 && finalCpsVol > 0) ? fixed(totalCellNum, 2) : '';
+        if (el5) el5.value = fixed(concentration, 2);
+        if (el6) el6.value = countingResusp > 0 ? fixed(totalCellNum, 2) : '';
+        if (el7) el7.value = countingResusp > 0 ? estimatedCpsVolume : '';
+        if (el8) el8.value = (countingResusp > 0 && finalCpsVol > 0) ? fixed(cellsPerVial, 2) : '';
     }
 
     // listeners
@@ -841,26 +875,26 @@ document.addEventListener('DOMContentLoaded', function () {
     recomputeManualAndOutcomes();
 
     // ---------- Button handlers ----------
-    
+
     // Notification System
     function showNotification(message, type = 'success') {
         const container = document.getElementById('notificationContainer');
         const notification = document.createElement('div');
-        
+
         const colors = {
             success: 'bg-green-500',
             error: 'bg-red-500',
             warning: 'bg-yellow-500',
             info: 'bg-blue-500'
         };
-        
+
         const icons = {
             success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',
             error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>',
             warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
             info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
         };
-        
+
         notification.className = `${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] transform transition-all duration-300 translate-x-full`;
         notification.innerHTML = `
             <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -873,19 +907,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 </svg>
             </button>
         `;
-        
+
         container.appendChild(notification);
-        
-        // Animate in
+
         setTimeout(() => notification.classList.remove('translate-x-full'), 10);
-        
-        // Auto remove after 4 seconds
+
         setTimeout(() => {
             notification.classList.add('translate-x-full');
             setTimeout(() => notification.remove(), 300);
         }, 4000);
     }
-    
+
     // Confirmation Modal
     function showConfirmModal(title, message, confirmText, confirmColor, onConfirm) {
         const modal = document.getElementById('confirmModal');
@@ -894,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const modalIcon = document.getElementById('modalIcon');
         const modalConfirm = document.getElementById('modalConfirm');
         const modalCancel = document.getElementById('modalCancel');
-        
+
         const configs = {
             danger: {
                 bg: 'bg-red-50',
@@ -912,47 +944,47 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: '<svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
             }
         };
-        
+
         const config = configs[confirmColor] || configs.warning;
-        
+
         modalTitle.textContent = title;
         modalMessage.textContent = message;
         modalIcon.className = `flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${config.bg}`;
         modalIcon.innerHTML = config.icon;
         modalConfirm.textContent = confirmText;
         modalConfirm.className = `px-6 py-2.5 rounded-lg font-semibold text-white transition-all duration-200 ${config.btnBg}`;
-        
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        
-        // Cleanup previous listeners
+
+        // Cleanup previous listeners by cloning
         const newModalConfirm = modalConfirm.cloneNode(true);
         const newModalCancel = modalCancel.cloneNode(true);
         modalConfirm.parentNode.replaceChild(newModalConfirm, modalConfirm);
         modalCancel.parentNode.replaceChild(newModalCancel, modalCancel);
-        
+
         newModalConfirm.addEventListener('click', () => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             onConfirm();
         });
-        
+
         newModalCancel.addEventListener('click', () => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         });
-        
-        // Close on backdrop click
+
+        // Close on backdrop click (attach once per open)
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }
-        });
+        }, { once: true });
     }
-    
+
     // Reset Form button
-    document.getElementById('resetFormBtn').addEventListener('click', function() {
+    document.getElementById('resetFormBtn')?.addEventListener('click', function() {
         showConfirmModal(
             'Reset Form',
             'Are you sure you want to reset the form? All unsaved data will be lost.',
@@ -960,11 +992,9 @@ document.addEventListener('DOMContentLoaded', function () {
             'danger',
             () => {
                 document.getElementById('pbmcForm').reset();
-                // Trigger change event to hide conditional sections
                 if (studySelect) {
                     studySelect.dispatchEvent(new Event('change'));
                 }
-                // Recompute calculations after reset
                 recomputeManualAndOutcomes();
                 showNotification('Form has been reset successfully', 'success');
             }
@@ -972,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Save Progress button
-    document.getElementById('saveProgressBtn').addEventListener('click', function() {
+    document.getElementById('saveProgressBtn')?.addEventListener('click', function() {
         showConfirmModal(
             'Save Progress',
             'This will save your current form progress to your browser. You can restore it later.',
@@ -985,7 +1015,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!data[key]) {
                         data[key] = value;
                     } else {
-                        // Handle multiple values (like checkboxes)
                         if (!Array.isArray(data[key])) {
                             data[key] = [data[key]];
                         }
@@ -1000,19 +1029,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Submit form with confirmation
-    document.getElementById('pbmcForm').addEventListener('submit', function(e) {
+    document.getElementById('pbmcForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         showConfirmModal(
             'Submit Form',
             'Are you sure you want to submit this PBMC record? Please review all information before submitting.',
             'Submit Form',
             'success',
             () => {
-                // Clear saved progress on successful submit
                 localStorage.removeItem('pbmc_form_progress');
                 localStorage.removeItem('pbmc_form_progress_timestamp');
-                // Actually submit the form
                 e.target.submit();
             }
         );
@@ -1021,10 +1048,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Optional: Load saved progress on page load
     const savedProgress = localStorage.getItem('pbmc_form_progress');
     const savedTimestamp = localStorage.getItem('pbmc_form_progress_timestamp');
-    
+
     if (savedProgress) {
         const timeAgo = savedTimestamp ? new Date(savedTimestamp).toLocaleString() : 'Unknown time';
-        
+
         showConfirmModal(
             'Restore Saved Progress',
             `You have saved form progress from ${timeAgo}. Would you like to restore it?`,
@@ -1046,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         });
                     });
-                    // Trigger change events
+
                     if (studySelect) {
                         studySelect.dispatchEvent(new Event('change'));
                     }
