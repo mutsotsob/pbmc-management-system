@@ -6,14 +6,11 @@
 
     <title>PBMC | Dashboard</title>
 
-    <!-- PBMC Branding -->
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon.png') }}">
 
-    <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Custom Colors -->
     <script>
         tailwind.config = {
             theme: {
@@ -30,68 +27,44 @@
 @php
     $user = Auth::user();
     $isAdmin = $user && strtolower(trim($user->user_type ?? '')) === 'admin';
-
-    // ✅ If you already pass $pbmcs from controller, remove this and use $pbmcs->count()
-    $pbmcCount = \App\Models\Pbmc::count();
 @endphp
 
 <div class="flex min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="w-56 bg-white text-gray-800 border-r border-gray-200 p-4 flex flex-col items-center fixed left-0 top-0 h-screen overflow-y-auto z-30">
-
-        <div class="mb-6 text-center w-full">
+    <aside class="w-56 bg-white border-r p-4 fixed left-0 top-0 h-screen z-30">
+        <div class="mb-6 text-center">
             <img src="{{ asset('idrl.png') }}"
-                 alt="PBMC Logo"
-                 class="w-36 h-20 mx-auto rounded-lg shadow-sm border border-gray-200 object-contain bg-white p-2">
-            <p class="mt-3 text-xs tracking-widest text-gray-600 uppercase">PBMC Processing Portal</p>
+                 class="w-36 h-20 mx-auto rounded-lg border object-contain p-2 bg-white">
+            <p class="mt-3 text-xs tracking-widest text-gray-600 uppercase">
+                PBMC Processing Portal
+            </p>
         </div>
 
-        <ul class="w-full space-y-1">
+        <ul class="space-y-1">
             <li>
                 <a href="{{ route('dashboard') }}"
-                   class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                    <i data-feather="home" class="w-5 h-5 mr-2 text-gray-500"></i>
+                   class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
+                    <i data-feather="home" class="w-5 h-5 mr-2"></i>
                     Dashboard
                 </a>
             </li>
 
-            <li>
-                <a href="{{ route('pbmc.index') }}"
-                   class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                    <i data-feather="file-text" class="w-5 h-5 mr-2 text-gray-500"></i>
-                    PBMC Processes
-                </a>
-            </li>
-
-            {{-- ✅ ADMIN ONLY (always show for admin) --}}
             @if ($isAdmin)
-                <li class="pt-2">
-                    <p class="px-3 text-[11px] font-semibold text-gray-500 uppercase tracking-widest">
-                        Admin
-                    </p>
-                </li>
+                <li class="pt-2 text-xs font-semibold text-gray-500 uppercase px-3">Admin</li>
 
                 <li>
                     <a href="{{ route('admin.users') }}"
-                       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                        <i data-feather="users" class="w-5 h-5 mr-2 text-gray-500"></i>
+                       class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
+                        <i data-feather="users" class="w-5 h-5 mr-2"></i>
                         Manage Users
                     </a>
                 </li>
 
                 <li>
-                    <a href=""
-                       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                        <i data-feather="check-square" class="w-5 h-5 mr-2 text-gray-500"></i>
-                        Processed Samples
-                    </a>
-                </li>
-
-                <li>
-                    <a href=""
-                       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                        <i data-feather="bar-chart-2" class="w-5 h-5 mr-2 text-gray-500"></i>
+                    <a href="#"
+                       class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
+                        <i data-feather="bar-chart-2" class="w-5 h-5 mr-2"></i>
                         Basic Analysis
                     </a>
                 </li>
@@ -99,8 +72,8 @@
 
             <li class="pt-2">
                 <a href="{{ url('/settings') }}"
-                   class="w-full flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                    <i data-feather="settings" class="w-5 h-5 mr-2 text-gray-500"></i>
+                   class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
+                    <i data-feather="settings" class="w-5 h-5 mr-2"></i>
                     Settings
                 </a>
             </li>
@@ -108,168 +81,134 @@
             <li>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit"
-                            class="w-full flex items-center py-2 px-3 rounded-lg hover:bg-red-50 transition-colors duration-200 text-left text-red-600">
-                        <i data-feather="log-out" class="w-5 h-5 mr-2 text-red-500"></i>
+                    <button class="w-full flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg">
+                        <i data-feather="log-out" class="w-5 h-5 mr-2"></i>
                         Logout
                     </button>
                 </form>
             </li>
         </ul>
-
     </aside>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 ml-56 flex flex-col">
+    <!-- Main -->
+    <div class="flex-1 ml-56">
 
-        <!-- Top Navigation -->
-        <nav class="bg-white shadow-sm border-b border-gray-200 fixed top-0 right-0 left-56 z-20">
-            <div class="px-6 py-3">
-                <div class="flex items-center justify-between">
+        <!-- Top Nav -->
+        <nav class="bg-white border-b fixed top-0 left-56 right-0 z-20">
+            <div class="px-6 py-4 flex justify-between items-center">
+                <h1 class="text-xl font-bold">PBMC Dashboard</h1>
 
-                    <div class="flex items-center gap-3">
-                        <div class="w-2.5 h-2.5 rounded-full bg-pbmc"></div>
-                        <h1 class="text-xl font-bold text-gray-800">PBMC Dashboard</h1>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-pbmc rounded-full flex items-center justify-center text-white font-bold">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
                     </div>
-
-                    <div class="flex items-center gap-4">
-
-                        <!-- <div class="hidden md:block">
-                            <div class="relative">
-                                <input type="text"
-                                       placeholder="Search PBMC records..."
-                                       class="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
-                                <i data-feather="search" class="w-4 h-4 absolute left-3 top-2.5 text-gray-400"></i>
-                            </div>
-                        </div> -->
-
-                        <div class="relative">
-                            <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
-                                <i data-feather="bell" class="w-5 h-5 text-gray-600"></i>
-                                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                            </button>
-                        </div>
-
-                        <!-- User Menu -->
-                        <div class="relative" id="userMenuWrap">
-                            <button id="userMenuButton"
-                                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-
-                                <div class="w-8 h-8 rounded-full bg-pbmc flex items-center justify-center text-white font-semibold">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                </div>
-
-                                <div class="hidden md:block text-left">
-                                    <p class="text-sm font-semibold text-gray-800">{{ Auth::user()->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ Auth::user()->department ?? 'PBMC Department' }}</p>
-                                </div>
-
-                                <i data-feather="chevron-down" class="w-4 h-4 text-gray-600"></i>
-                            </button>
-
-                            <div id="userDropdown"
-                                 class="hidden absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-
-                                <a href="#"
-                                   class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <i data-feather="user" class="w-4 h-4 text-gray-500"></i>
-                                    My Profile
-                                </a>
-
-                                <a href="{{ url('/settings') }}"
-                                   class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <i data-feather="settings" class="w-4 h-4 text-gray-500"></i>
-                                    Settings
-                                </a>
-
-                                <hr class="my-2 border-gray-200">
-
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit"
-                                            class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left">
-                                        <i data-feather="log-out" class="w-4 h-4 text-red-500"></i>
-                                        Logout
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                    </div>
+                    <span class="text-sm font-semibold">{{ $user->name }}</span>
                 </div>
             </div>
         </nav>
 
-        <!-- Main Content -->
-        <main class="flex-1 px-6 py-6 overflow-auto mt-20">
+        <!-- Content -->
+        <main class="pt-24 px-6 pb-6">
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-xl border p-6">
 
-                <h2 class="text-lg font-bold text-orange-600 mb-2">
-                    Welcome, {{ Auth::user()->name }} 👋
+                <h2 class="text-lg font-bold text-orange-600 mb-1">
+                    Welcome, {{ $user->name }} 👋
                 </h2>
 
                 <p class="text-gray-600 mb-6">
                     Track PBMC processes, all in one place.
                 </p>
 
-                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                <div class="border rounded-xl overflow-hidden">
 
-                    <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
-                        <h3 class="font-semibold text-gray-800">PBMC Records</h3>
+                    <!-- 🔥 HEADER WITH CREATE BUTTON -->
+                    <div class="px-5 py-4 bg-gray-50 border-b flex justify-between items-center">
+                        <h3 class="font-semibold">PBMC Records</h3>
+
+                        <div class="flex items-center gap-4">
+<a href="{{ route('pbmc.create') }}"
+   class="inline-flex items-center gap-2 bg-green-600 text-white
+          px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
+    <i data-feather="plus" class="w-4 h-4"></i>
+    Add Record
+</a>
+
+
+                            
+                        </div>
                     </div>
 
-                    <div class="p-10">
-                        @if ($pbmcCount === 0)
-                            <div class="flex flex-col items-center justify-center text-center">
-                                <p class="text-gray-600 mb-4">
-                                    No PBMC records found. Create the first one to get started.
-                                </p>
+                    <div class="p-6">
 
-                                <a href="{{ route('pbmc.create') }}"
-                                   class="inline-flex items-center gap-2 bg-pbmc text-white px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition">
-                                    <i data-feather="plus" class="w-4 h-4"></i>
-                                    Create PBMC
-                                </a>
+                        @if ($pbmcs->isEmpty())
+                            <div class="text-center py-10 text-gray-600">
+                                No PBMC records found.
                             </div>
                         @else
-                            <div class="text-gray-700">
-                                <p class="text-sm">PBMC records exist. Render the table here.</p>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr class="text-left text-xs font-semibold text-gray-600 uppercase">
+                                            <th class="px-4 py-3">Study</th>
+                                            <th class="px-4 py-3">PTID</th>
+                                            <th class="px-4 py-3">Visit</th>
+                                            <th class="px-4 py-3">Collection Date</th>
+                                            <th class="px-4 py-3">Viability</th>
+                                            <th class="px-4 py-3 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y bg-white">
+                                        @foreach ($pbmcs as $pbmc)
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-4 py-3 font-medium">
+                                                    {{ $pbmc->study_choice === 'Other'
+                                                        ? $pbmc->other_study_name
+                                                        : $pbmc->study_choice }}
+                                                </td>
+                                                <td class="px-4 py-3">{{ $pbmc->ptid }}</td>
+                                                <td class="px-4 py-3">{{ $pbmc->visit }}</td>
+                                                <td class="px-4 py-3">
+                                                    {{ $pbmc->collection_date?->format('d M Y') }}
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    @php
+                                                        $v = $pbmc->viability_percent ?? $pbmc->auto_viability_percent;
+                                                    @endphp
+                                                    @if($v !== null)
+                                                        <span class="px-2 py-1 text-xs rounded-full
+                                                            {{ $v >= 80 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                                            {{ number_format($v, 1) }}%
+                                                        </span>
+                                                    @else
+                                                        <span class="text-gray-400 text-xs">N/A</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-3 text-right">
+                                                    <a href="{{ route('pbmc.show', $pbmc) }}"
+                                                       class="text-pbmc hover:underline font-medium">
+                                                        View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         @endif
-                    </div>
 
+                    </div>
                 </div>
 
             </div>
         </main>
     </div>
-
 </div>
 
-<!-- Feather Icons -->
 <script src="https://unpkg.com/feather-icons"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        feather.replace({ 'aria-hidden': 'true' });
-
-        const btn = document.getElementById('userMenuButton');
-        const menu = document.getElementById('userDropdown');
-
-        if (btn && menu) {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                menu.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', (e) => {
-                const wrap = document.getElementById('userMenuWrap');
-                if (wrap && !wrap.contains(e.target)) {
-                    menu.classList.add('hidden');
-                }
-            });
-        }
-    });
+    feather.replace();
 </script>
 
 </body>

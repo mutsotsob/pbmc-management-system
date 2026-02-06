@@ -24,16 +24,21 @@ class PbmcWash extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Attribute casting (MATCHES MIGRATION)
      */
     protected $casts = [
-        'start_time' => 'datetime',
-        'stop_time' => 'datetime',
+        // TIME columns → keep as strings
+        'start_time' => 'string',
+        'stop_time' => 'string',
+
+        // Numerics
         'wash_number' => 'integer',
+        'volume' => 'decimal:2',
+        'centrifuge_speed' => 'integer',
     ];
 
     /**
-     * Get the PBMC that owns the wash.
+     * Relationship: owning PBMC
      */
     public function pbmc(): BelongsTo
     {
@@ -41,7 +46,7 @@ class PbmcWash extends Model
     }
 
     /**
-     * Calculate duration in minutes.
+     * Derived attribute: wash duration in minutes
      */
     public function getDurationAttribute(): ?int
     {
@@ -49,11 +54,18 @@ class PbmcWash extends Model
             return null;
         }
 
-        return $this->start_time->diffInMinutes($this->stop_time);
+        try {
+            $start = \Carbon\Carbon::createFromFormat('H:i:s', $this->start_time);
+            $stop  = \Carbon\Carbon::createFromFormat('H:i:s', $this->stop_time);
+
+            return $start->diffInMinutes($stop);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
-     * Scope to filter by wash number.
+     * Scope: filter by wash number
      */
     public function scopeWashNumber($query, int $number)
     {

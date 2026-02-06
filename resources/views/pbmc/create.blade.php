@@ -19,6 +19,25 @@
             </div>
         </div>
 
+        <!-- Success/Error Messages -->
+        @if(session('success'))
+            <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
         <!-- Form Card -->
         <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
 
@@ -83,7 +102,7 @@
                                 PTID <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="ptid" id="ptid" value="{{ old('ptid') }}" required placeholder="e.g. PT12345"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             @error('ptid')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
@@ -92,7 +111,7 @@
                                 Visit <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="visit" id="visit" value="{{ old('visit') }}" required placeholder="e.g. V1"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             @error('visit')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -102,16 +121,17 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Collection Date <span class="text-red-500">*</span>
                             </label>
-                            <input type="date" name="collection_date" id="collection_date" value="{{ old('collection_date') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                            <input type="date" name="collection_date" id="collection_date" 
+                                   value="{{ old('collection_date') }}" required
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             @error('collection_date')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Collection Time <span class="text-red-500">*</span>
+                                Collection Time
                             </label>
                             <input type="time" name="collection_time" id="collection_time" value="{{ old('collection_time') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             @error('collection_time')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -120,12 +140,12 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Process Start Date</label>
                             <input type="date" name="process_start_date" id="process_start_date" value="{{ old('process_start_date') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Process Start Time</label>
                             <input type="time" name="process_start_time" id="process_start_time" value="{{ old('process_start_time') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
                     </div>
                 </div>
@@ -159,11 +179,11 @@
                                         </td>
                                         <td class="px-4 py-2.5">
                                             <input type="text" name="reagents[{{ $i }}][lot]" value="{{ old("reagents.$i.lot") }}"
-                                                   class="w-full rounded-lg border px-3 py-2 text-sm ">
+                                                   class="w-full rounded-lg border px-3 py-2 text-sm">
                                         </td>
                                         <td class="px-4 py-2.5">
                                             <input type="date" name="reagents[{{ $i }}][expiry]" value="{{ old("reagents.$i.expiry") }}"
-                                                   class="w-full rounded-lg border px-3 py-2 text-sm ">
+                                                   class="w-full rounded-lg border px-3 py-2 text-sm">
                                         </td>
                                     </tr>
                                 @endforeach
@@ -175,7 +195,7 @@
                     <div class="mt-8">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Processing Tube Type</label>
                         <select name="processing_data" id="processing_data"
-                                class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             <option value="">Select one</option>
                             <option value="EDTA" {{ old('processing_data')==='EDTA'?'selected':'' }}>EDTA</option>
                             <option value="ACD"  {{ old('processing_data')==='ACD' ? 'selected':'' }}>ACD</option>
@@ -194,7 +214,7 @@
                             </label>
                         </div>
 
-                        <h4 class="text-sm font-semibold text-gray-800 mb-2">Sample Status (circle one or more)</h4>
+                        <h4 class="text-sm font-semibold text-gray-800 mb-2">Sample Status (select one or more)</h4>
                         @php $oldStatuses = (array) old('sample_status', []); @endphp
                         <div class="flex flex-wrap gap-4 mb-6 text-sm text-gray-700">
                             <label class="inline-flex items-center gap-2">
@@ -210,30 +230,33 @@
 
                         <!-- Counting method -->
                         <div class="mb-6">
-                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Counting Method</h4>
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Counting Method <span class="text-red-500">*</span></h4>
                             <div class="flex gap-4 text-sm text-gray-700">
                                 <label class="inline-flex items-center gap-2">
-                                    <input type="radio" name="counting_method" value="Manual Count" {{ old('counting_method')==='Manual Count' ? 'checked' : '' }}> Manual Count
+                                    <input type="radio" name="counting_method" value="Manual Count" 
+                                           {{ old('counting_method')==='Manual Count' ? 'checked' : '' }} required> Manual Count
                                 </label>
                                 <label class="inline-flex items-center gap-2">
-                                    <input type="radio" name="counting_method" value="Automated" {{ old('counting_method')==='Automated' ? 'checked' : '' }}> Automated
+                                    <input type="radio" name="counting_method" value="Automated" 
+                                           {{ old('counting_method')==='Automated' ? 'checked' : '' }} required> Automated
                                 </label>
                             </div>
+                            @error('counting_method')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <!-- Usable blood volume -->
                         <div class="mb-8">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Usable Blood Volume</label>
-                            <input type="text" name="usable_blood_volume" value="{{ old('usable_blood_volume') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                            <input type="number" step="0.01" name="usable_blood_volume" value="{{ old('usable_blood_volume') }}"
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
 
                         <!-- Washes -->
                         @php $washDefaults = ['volume'=>'45','centrifuge_id'=>'CEN001','centrifuge_speed'=>'400XG']; @endphp
                         @foreach([1,2,3] as $w)
                             <div class="mb-6 border rounded-lg overflow-hidden">
-                                <div class="px-5 py-3 bg-green-50 dark:bg-green-900/10 border-b">
-                                    <h4 class="font-semibold text-green-700 dark:text-green-300">Wash {{ $w }}</h4>
+                                <div class="px-5 py-3 bg-green-50 border-b">
+                                    <h4 class="font-semibold text-green-700">Wash {{ $w }}</h4>
                                 </div>
 
                                 <div class="p-4">
@@ -241,12 +264,12 @@
                                         <div>
                                             <label class="block text-xs font-semibold text-gray-600 mb-1">Wash Start Time</label>
                                             <input type="time" name="washes[{{ $w }}][start_time]" value="{{ old("washes.$w.start_time") }}"
-                                                   class="w-full rounded-lg border px-3 py-2 ">
+                                                   class="w-full rounded-lg border px-3 py-2">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-gray-600 mb-1">Wash Stop Time</label>
                                             <input type="time" name="washes[{{ $w }}][stop_time]" value="{{ old("washes.$w.stop_time") }}"
-                                                   class="w-full rounded-lg border px-3 py-2 ">
+                                                   class="w-full rounded-lg border px-3 py-2">
                                         </div>
                                     </div>
 
@@ -264,7 +287,7 @@
                                                     <td class="px-4 py-2">
                                                         <input type="text" name="washes[{{ $w }}][volume]"
                                                                value="{{ old("washes.$w.volume", $washDefaults['volume']) }}"
-                                                               class="w-full rounded-lg border px-3 py-2 ">
+                                                               class="w-full rounded-lg border px-3 py-2">
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -272,7 +295,7 @@
                                                     <td class="px-4 py-2">
                                                         <input type="text" name="washes[{{ $w }}][centrifuge_id]"
                                                                value="{{ old("washes.$w.centrifuge_id", $washDefaults['centrifuge_id']) }}"
-                                                               class="w-full rounded-lg border px-3 py-2 ">
+                                                               class="w-full rounded-lg border px-3 py-2">
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -280,7 +303,7 @@
                                                     <td class="px-4 py-2">
                                                         <input type="text" name="washes[{{ $w }}][centrifuge_speed]"
                                                                value="{{ old("washes.$w.centrifuge_speed", $washDefaults['centrifuge_speed']) }}"
-                                                               class="w-full rounded-lg border px-3 py-2 ">
+                                                               class="w-full rounded-lg border px-3 py-2">
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -327,14 +350,14 @@
                                             <input type="number" min="0" step="1"
                                                    name="manual_counts[{{ $i }}][nonviable]"
                                                    value="{{ old("manual_counts.$i.nonviable", '') }}"
-                                                   class="manual-nonviable w-full rounded-lg border px-3 py-2 text-sm ">
+                                                   class="manual-nonviable w-full rounded-lg border px-3 py-2 text-sm">
                                         </td>
 
                                         <td class="px-4 py-2.5">
                                             <input type="number" min="0" step="1"
                                                    name="manual_counts[{{ $i }}][viable]"
                                                    value="{{ old("manual_counts.$i.viable", '') }}"
-                                                   class="manual-viable w-full rounded-lg border px-3 py-2 text-sm ">
+                                                   class="manual-viable w-full rounded-lg border px-3 py-2 text-sm">
                                         </td>
 
                                         <td class="px-4 py-2.5">
@@ -347,7 +370,7 @@
                                 @endforeach
                             </tbody>
 
-                            <tfoot class="bg-gray-50 dark:bg-gray-800">
+                            <tfoot class="bg-gray-50">
                                 <tr>
                                     <td class="px-4 py-2.5 font-semibold text-sm text-gray-700">Average</td>
                                     <td class="px-4 py-2.5">
@@ -371,32 +394,32 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Manual Count Start Time</label>
                             <input type="time" name="manual_count_start_time" value="{{ old('manual_count_start_time') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Manual Count Stop Time</label>
                             <input type="time" name="manual_count_stop_time" value="{{ old('manual_count_stop_time') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Haemocytometer Factor</label>
                             <input type="number" step="any" id="haemocytometer_factor" name="haemocytometer_factor"
                                    value="{{ old('haemocytometer_factor', '10000') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">PBMC Dilution Factor</label>
                             <input type="number" step="any" id="pbmc_dilution_factor" name="pbmc_dilution_factor"
                                    value="{{ old('pbmc_dilution_factor', '2') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
                     </div>
                 </div>
 
-                <!-- ✅ Sample Calculated outcomes -->
+                <!-- Sample Calculated outcomes -->
                 <div id="calculatedOutcomesWrap" class="mb-8 {{ old('study_choice') ? '' : 'hidden' }}">
                     <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-blue-600">
                         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -412,7 +435,7 @@
                                 Average cell count per square (cells/mm<sup>2</sup>)
                             </label>
                             <input type="text" readonly id="out_avg_cells_per_square"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
                         </div>
 
                         <div>
@@ -420,7 +443,7 @@
                                 Total Count
                             </label>
                             <input type="text" readonly id="out_total_count"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
                         </div>
 
                         <div>
@@ -428,7 +451,7 @@
                                 Average Viable Cells
                             </label>
                             <input type="text" readonly id="out_avg_viable_cells"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
                         </div>
 
                         <div>
@@ -437,7 +460,9 @@
                             </label>
                             <div class="relative">
                                 <input type="text" readonly id="out_viability_percent"
-                                       class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5 pr-10">
+                                       class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 pr-10">
+                                <!-- Hidden field to store viability percent for database -->
+                                <input type="hidden" name="viability_percent" id="hidden_viability_percent">
                                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
                             </div>
                         </div>
@@ -449,7 +474,7 @@
                             <input type="number" step="any" min="0" id="counting_resuspension" name="counting_resuspension"
                                    value="{{ old('counting_resuspension') }}"
                                    placeholder="Enter resuspension volume"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             <p class="mt-1 text-xs text-gray-500">Volume used for resuspension (used to calculate Total Cell Number).</p>
                         </div>
 
@@ -458,7 +483,9 @@
                                 Cell Count Concentration (×10<sup>6</sup>/mL)
                             </label>
                             <input type="text" readonly id="out_cell_count_concentration"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
+                            <!-- Hidden field to store concentration for database -->
+                            <input type="hidden" name="cell_count_concentration" id="hidden_cell_count_concentration">
                         </div>
 
                         <div>
@@ -466,16 +493,19 @@
                                 Total Cell Number (×10<sup>6</sup>)
                             </label>
                             <input type="text" readonly id="out_total_cell_number"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
+                            <!-- Hidden field to store total cell number for database -->
+                            <input type="hidden" name="total_cell_number" id="hidden_total_cell_number">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Final CPS Resuspension Volume (Vf)
                             </label>
-                            <input type="text" readonly id="final_cps_resuspension_volume" name="final_cps_resuspension_volume"
+                            <input type="text" readonly id="final_cps_resuspension_volume" 
+                                   name="final_cps_resuspension_volume"
                                    value="{{ old('final_cps_resuspension_volume') }}"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
                             <p class="mt-1 text-xs text-gray-500">Vf = Total Cell Number / 15,000,000</p>
                         </div>
 
@@ -484,7 +514,7 @@
                                 Actual Number of Cells per Vial (N2) (×10<sup>6</sup>)
                             </label>
                             <input type="text" readonly id="out_cells_per_vial"
-                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 dark:text-white px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5">
                             <p class="mt-1 text-xs text-gray-500">N2 = Total Cell Number (T) / Final CPS Resuspension Volume (Vf)</p>
                         </div>
                     </div>
@@ -501,7 +531,7 @@
                     </p>
                 </div>
 
-                <!-- ✅ Automated Cell Count -->
+                <!-- Automated Cell Count -->
                 <div id="autoCountingWrap" class="mb-8 {{ old('study_choice') ? '' : 'hidden' }}">
                     <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-blue-600">
                         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -514,20 +544,20 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">System clean done</label>
                             <select name="auto_system_clean_done"
-                                    class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                                 <option value="">Select</option>
-                                <option value="Yes" {{ old('auto_system_clean_done')==='Yes'?'selected':'' }}>Yes</option>
-                                <option value="No"  {{ old('auto_system_clean_done')==='No'?'selected':'' }}>No</option>
+                                <option value="1" {{ old('auto_system_clean_done')==='1'?'selected':'' }}>Yes</option>
+                                <option value="0"  {{ old('auto_system_clean_done')==='0'?'selected':'' }}>No</option>
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">QC passed</label>
                             <select name="auto_qc_passed"
-                                    class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                    class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                                 <option value="">Select</option>
-                                <option value="Yes" {{ old('auto_qc_passed')==='Yes'?'selected':'' }}>Yes</option>
-                                <option value="No"  {{ old('auto_qc_passed')==='No'?'selected':'' }}>No</option>
+                                <option value="1" {{ old('auto_qc_passed')==='1'?'selected':'' }}>Yes</option>
+                                <option value="0"  {{ old('auto_qc_passed')==='0'?'selected':'' }}>No</option>
                             </select>
                         </div>
 
@@ -537,7 +567,7 @@
                                 <input type="number" min="0" max="100" step="0.01"
                                        name="auto_viability_percent"
                                        value="{{ old('auto_viability_percent') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5 pr-10">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10">
                                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
                             </div>
                         </div>
@@ -547,7 +577,7 @@
                             <input type="number" step="1" min="0"
                                    name="auto_total_viable_cells_original"
                                    value="{{ old('auto_total_viable_cells_original') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
 
                         <div>
@@ -555,7 +585,7 @@
                             <input type="number" step="1" min="0"
                                    name="auto_total_cells_original"
                                    value="{{ old('auto_total_cells_original') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
 
                         <div>
@@ -563,7 +593,7 @@
                             <input type="number" step="1" min="0"
                                    name="auto_total_cryovials_frozen"
                                    value="{{ old('auto_total_cryovials_frozen') }}"
-                                   class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                   class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                         </div>
                     </div>
 
@@ -576,26 +606,26 @@
                                 <input type="number" step="0.1" min="2" max="80"
                                        name="frosty_storage_temp"
                                        value="{{ old('frosty_storage_temp') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
                                 <input type="date" name="frosty_date" value="{{ old('frosty_date') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
                                 <input type="time" name="frosty_time" value="{{ old('frosty_time') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Transfer</label>
                                 <input type="text" name="frosty_transfer" value="{{ old('frosty_transfer') }}"
                                        placeholder="e.g. moved to freezer / LN2 staging"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
                         </div>
                     </div>
@@ -605,15 +635,15 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">First</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                                 <input type="text" name="ln2_transfer_first" value="{{ old('ln2_transfer_first') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Last</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                                 <input type="text" name="ln2_transfer_last" value="{{ old('ln2_transfer_last') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
 
                             <div class="sm:col-span-2">
@@ -621,13 +651,13 @@
                                     Date / time cryovials were transferred to LN2
                                 </label>
                                 <input type="datetime-local" name="ln2_transfer_datetime" value="{{ old('ln2_transfer_datetime') }}"
-                                       class="w-full rounded-lg border border-gray-300  px-4 py-2.5">
+                                       class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
                             </div>
 
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>
                                 <textarea name="auto_comment" rows="3"
-                                          class="w-full rounded-lg border border-gray-300  px-4 py-2.5">{{ old('auto_comment') }}</textarea>
+                                          class="w-full rounded-lg border border-gray-300 px-4 py-2.5">{{ old('auto_comment') }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -638,6 +668,14 @@
 
                 <!-- Action Buttons -->
                 <div id="actionButtonsWrap" class="flex flex-wrap items-center justify-end gap-3 {{ old('study_choice') ? 'flex' : 'hidden' }}">
+                    <a href="{{ route('pbmc.index') }}"
+                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Cancel
+                    </a>
+
                     <button type="button" id="resetFormBtn"
                             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -646,20 +684,12 @@
                         Reset
                     </button>
 
-                    <button type="button" id="saveProgressBtn"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-700 text-sm font-medium hover:bg-yellow-100 hover:border-yellow-400 transition-all duration-200 shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-                        </svg>
-                        Save Progress
-                    </button>
-
                     <button type="submit"
                             class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all duration-200 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Submit Form
+                        Submit PBMC Record
                     </button>
                 </div>
 
@@ -814,11 +844,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Counting resuspension volume
         const countingResusp = num(document.getElementById('counting_resuspension')?.value);
 
-        // ✅ CORRECTED FORMULA:
         // Cell Count Concentration (×10⁶/mL) = (avgViable × haem × dil) / 1,000,000
         const concentration = (avgViable * haem * dil) / 1000000;
 
-        // ✅ Total Cell Number (×10⁶) = concentration × counting resuspension volume
+        // Total Cell Number (×10⁶) = concentration × counting resuspension volume
         const totalCellNum = concentration * countingResusp;
 
         // Final CPS resuspension volume (Vf) = Total Cell Number / 15,000,000
@@ -827,6 +856,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Cells per vial = totalCellNum / finalCpsVol
         const cellsPerVial = finalCpsVol > 0 ? (totalCellNum / finalCpsVol) : 0;
 
+        // Update display fields
         const el1 = document.getElementById('out_avg_cells_per_square');
         const el2 = document.getElementById('out_total_count');
         const el3 = document.getElementById('out_avg_viable_cells');
@@ -844,6 +874,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (el6) el6.value = countingResusp > 0 ? fixed(totalCellNum, 2) : '';
         if (el7) el7.value = countingResusp > 0 ? fixed(finalCpsVol, 3) : '';
         if (el8) el8.value = (countingResusp > 0 && finalCpsVol > 0) ? fixed(cellsPerVial, 2) : '';
+
+        // Update hidden fields for database storage
+        const hiddenViability = document.getElementById('hidden_viability_percent');
+        const hiddenConcentration = document.getElementById('hidden_cell_count_concentration');
+        const hiddenTotalCellNum = document.getElementById('hidden_total_cell_number');
+
+        if (hiddenViability) hiddenViability.value = viabilityPct > 0 ? viabilityPct : '';
+        if (hiddenConcentration) hiddenConcentration.value = concentration > 0 ? concentration : '';
+        if (hiddenTotalCellNum) hiddenTotalCellNum.value = totalCellNum > 0 ? totalCellNum : '';
     }
 
     // listeners
@@ -923,11 +962,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnBg: 'bg-red-600 hover:bg-red-700',
                 icon: '<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
             },
-            warning: {
-                bg: 'bg-yellow-50',
-                btnBg: 'bg-yellow-600 hover:bg-yellow-700',
-                icon: '<svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>'
-            },
             success: {
                 bg: 'bg-green-50',
                 btnBg: 'bg-green-600 hover:bg-green-700',
@@ -935,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        const config = configs[confirmColor] || configs.warning;
+        const config = configs[confirmColor] || configs.success;
 
         modalTitle.textContent = title;
         modalMessage.textContent = message;
@@ -964,7 +998,7 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.classList.remove('flex');
         });
 
-        // Close on backdrop click (attach once per open)
+        // Close on backdrop click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.add('hidden');
@@ -991,91 +1025,20 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     });
 
-    // Save Progress button
-    document.getElementById('saveProgressBtn')?.addEventListener('click', function() {
-        showConfirmModal(
-            'Save Progress',
-            'This will save your current form progress to your browser. You can restore it later.',
-            'Save Progress',
-            'warning',
-            () => {
-                const formData = new FormData(document.getElementById('pbmcForm'));
-                const data = {};
-                formData.forEach((value, key) => {
-                    if (!data[key]) {
-                        data[key] = value;
-                    } else {
-                        if (!Array.isArray(data[key])) {
-                            data[key] = [data[key]];
-                        }
-                        data[key].push(value);
-                    }
-                });
-                localStorage.setItem('pbmc_form_progress', JSON.stringify(data));
-                localStorage.setItem('pbmc_form_progress_timestamp', new Date().toISOString());
-                showNotification('Progress saved successfully!', 'success');
-            }
-        );
-    });
-
     // Submit form with confirmation
     document.getElementById('pbmcForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
 
         showConfirmModal(
-            'Submit Form',
+            'Submit PBMC Record',
             'Are you sure you want to submit this PBMC record? Please review all information before submitting.',
-            'Submit Form',
+            'Submit Record',
             'success',
             () => {
-                localStorage.removeItem('pbmc_form_progress');
-                localStorage.removeItem('pbmc_form_progress_timestamp');
                 e.target.submit();
             }
         );
     });
-
-    // Optional: Load saved progress on page load
-    const savedProgress = localStorage.getItem('pbmc_form_progress');
-    const savedTimestamp = localStorage.getItem('pbmc_form_progress_timestamp');
-
-    if (savedProgress) {
-        const timeAgo = savedTimestamp ? new Date(savedTimestamp).toLocaleString() : 'Unknown time';
-
-        showConfirmModal(
-            'Restore Saved Progress',
-            `You have saved form progress from ${timeAgo}. Would you like to restore it?`,
-            'Restore Progress',
-            'warning',
-            () => {
-                try {
-                    const data = JSON.parse(savedProgress);
-                    Object.keys(data).forEach(key => {
-                        const inputs = document.querySelectorAll(`[name="${key}"]`);
-                        inputs.forEach(input => {
-                            if (input.type === 'checkbox') {
-                                const values = Array.isArray(data[key]) ? data[key] : [data[key]];
-                                input.checked = values.includes(input.value);
-                            } else if (input.type === 'radio') {
-                                input.checked = input.value === data[key];
-                            } else {
-                                input.value = data[key];
-                            }
-                        });
-                    });
-
-                    if (studySelect) {
-                        studySelect.dispatchEvent(new Event('change'));
-                    }
-                    recomputeManualAndOutcomes();
-                    showNotification('Progress restored successfully!', 'success');
-                } catch (e) {
-                    console.error('Error loading saved progress:', e);
-                    showNotification('Failed to restore progress', 'error');
-                }
-            }
-        );
-    }
 });
 </script>
 @endsection

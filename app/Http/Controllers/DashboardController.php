@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Pbmc;
 
 use Throwable;
 
@@ -25,6 +26,13 @@ private function ensureAdmin()
     public function settings()
     {
         return view('settings.index');
+    }
+
+    public function dashboard()
+    {
+        $pbmcs = Pbmc::latest()->get(); 
+
+        return view('dashboard', compact('pbmcs'));
     }
 
     public function updatePassword(Request $request)

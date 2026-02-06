@@ -21,14 +21,14 @@ class PbmcReagent extends Model
     ];
 
     /**
-     * The attributes that should be cast.
+     * Attribute casting
      */
     protected $casts = [
         'expiry' => 'date',
     ];
 
     /**
-     * Get the PBMC that owns the reagent.
+     * Relationship: owning PBMC
      */
     public function pbmc(): BelongsTo
     {
@@ -36,24 +36,48 @@ class PbmcReagent extends Model
     }
 
     /**
-     * Check if the reagent is expired.
+     * Determine if the reagent is expired
      */
     public function isExpired(): bool
     {
-        return $this->expiry && $this->expiry->isPast();
+        return $this->expiry !== null && $this->expiry->isPast();
     }
 
     /**
-     * Scope to filter expired reagents.
+     * Accessor: human-friendly expiry status
+     */
+    public function getExpiryStatusAttribute(): string
+    {
+        if ($this->expiry === null) {
+            return 'Unknown';
+        }
+
+        return $this->isExpired() ? 'Expired' : 'Valid';
+    }
+
+    /**
+     * Scope: expired reagents
      */
     public function scopeExpired($query)
     {
-        return $query->whereNotNull('expiry')
-                     ->where('expiry', '<', now());
+        return $query
+            ->whereNotNull('expiry')
+            ->where('expiry', '<', now());
     }
 
     /**
-     * Scope to filter by reagent name.
+     * Scope: valid (non-expired) reagents
+     */
+    public function scopeValid($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('expiry')
+              ->orWhere('expiry', '>=', now());
+        });
+    }
+
+    /**
+     * Scope: filter by reagent name
      */
     public function scopeByName($query, string $name)
     {
