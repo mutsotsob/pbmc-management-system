@@ -43,6 +43,11 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/admin/users/bulk/enable', [DashboardController::class, 'bulkEnableUsers'])->name('admin.users.bulk.enable');
 Route::patch('/admin/users/bulk/disable', [DashboardController::class, 'bulkDisableUsers'])->name('admin.users.bulk.disable');
+   
+// PBMC Sync Route
+Route::post('/pbmcs/sync-from-acrn', [PbmcController::class, 'syncFromAcrn'])
+    ->name('pbmcs.sync');
+
 
 });
 

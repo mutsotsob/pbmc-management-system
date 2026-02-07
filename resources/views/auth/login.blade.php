@@ -51,7 +51,7 @@
                 name="password"
                 required
                 autocomplete="current-password"
-                placeholder="••••••••"
+                placeholder=""
             />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>

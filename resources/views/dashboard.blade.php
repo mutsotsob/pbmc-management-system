@@ -110,6 +110,37 @@
         <!-- Content -->
         <main class="pt-24 px-6 pb-6">
 
+            <!-- Success/Error Messages -->
+            @if(session('success'))
+                <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-start justify-between">
+                    <div class="flex items-start gap-2">
+                        <i data-feather="check-circle" class="w-5 h-5 mt-0.5 text-green-600"></i>
+                        <div>
+                            <p class="font-semibold">Success!</p>
+                            <p class="text-sm">{{ session('success') }}</p>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start justify-between">
+                    <div class="flex items-start gap-2">
+                        <i data-feather="alert-circle" class="w-5 h-5 mt-0.5 text-red-600"></i>
+                        <div>
+                            <p class="font-semibold">Error!</p>
+                            <p class="text-sm">{{ session('error') }}</p>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            @endif
+
             <div class="bg-white rounded-xl border p-6">
 
                 <h2 class="text-lg font-bold text-orange-600 mb-1">
@@ -122,20 +153,33 @@
 
                 <div class="border rounded-xl overflow-hidden">
 
-                    <!-- 🔥 HEADER WITH CREATE BUTTON -->
+                    <!-- HEADER WITH CREATE & SYNC BUTTONS -->
                     <div class="px-5 py-4 bg-gray-50 border-b flex justify-between items-center">
                         <h3 class="font-semibold">PBMC Records</h3>
 
-                        <div class="flex items-center gap-4">
-<a href="{{ route('pbmc.create') }}"
-   class="inline-flex items-center gap-2 bg-green-600 text-white
-          px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
-    <i data-feather="plus" class="w-4 h-4"></i>
-    Add Record
-</a>
+                        <div class="flex items-center gap-3">
+                            <!-- Sync Button (Admin Only) -->
+                            @if ($isAdmin)
+                                <form action="{{ route('pbmcs.sync') }}" method="POST" 
+                                      onsubmit="return confirm('Are you sure you want to sync data from ACRN database? This may take a few minutes.');"
+                                      class="inline-block">
+                                    @csrf
+                                    <button type="submit"
+                                            class="inline-flex items-center gap-2 bg-blue-600 text-white
+                                                   px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">
+                                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                                        Sync from ACRN
+                                    </button>
+                                </form>
+                            @endif
 
-
-                            
+                            <!-- Add Record Button -->
+                            <a href="{{ route('pbmc.create') }}"
+                               class="inline-flex items-center gap-2 bg-green-600 text-white
+                                      px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
+                                <i data-feather="plus" class="w-4 h-4"></i>
+                                Add Record
+                            </a>
                         </div>
                     </div>
 
@@ -143,7 +187,9 @@
 
                         @if ($pbmcs->isEmpty())
                             <div class="text-center py-10 text-gray-600">
-                                No PBMC records found.
+                                <i data-feather="inbox" class="w-12 h-12 mx-auto mb-3 text-gray-400"></i>
+                                <p class="text-lg font-semibold mb-1">No PBMC records found</p>
+                                <p class="text-sm">Get started by adding a new record or syncing from ACRN database.</p>
                             </div>
                         @else
                             <div class="overflow-x-auto">
@@ -155,6 +201,7 @@
                                             <th class="px-4 py-3">Visit</th>
                                             <th class="px-4 py-3">Collection Date</th>
                                             <th class="px-4 py-3">Viability</th>
+                                            <th class="px-4 py-3">Source</th>
                                             <th class="px-4 py-3 text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -185,6 +232,19 @@
                                                         <span class="text-gray-400 text-xs">N/A</span>
                                                     @endif
                                                 </td>
+                                                <td class="px-4 py-3">
+                                                    @if($pbmc->imported_from_acrn ?? false)
+                                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                                                            <i data-feather="database" class="w-3 h-3"></i>
+                                                            ACRN
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
+                                                            <i data-feather="edit" class="w-3 h-3"></i>
+                                                            Manual
+                                                        </span>
+                                                    @endif
+                                                </td>
                                                 <td class="px-4 py-3 text-right">
                                                     <a href="{{ route('pbmc.show', $pbmc) }}"
                                                        class="text-pbmc hover:underline font-medium">
@@ -196,6 +256,13 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Pagination if needed -->
+                            @if(method_exists($pbmcs, 'links'))
+                                <div class="mt-4">
+                                    {{ $pbmcs->links() }}
+                                </div>
+                            @endif
                         @endif
 
                     </div>
@@ -209,6 +276,15 @@
 <script src="https://unpkg.com/feather-icons"></script>
 <script>
     feather.replace();
+    
+    // Auto-hide alerts after 10 seconds
+    setTimeout(() => {
+        document.querySelectorAll('.bg-green-50, .bg-red-50').forEach(el => {
+            el.style.transition = 'opacity 0.5s';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 500);
+        });
+    }, 10000);
 </script>
 
 </body>

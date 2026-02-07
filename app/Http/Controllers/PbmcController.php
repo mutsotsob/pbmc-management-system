@@ -308,4 +308,20 @@ class PbmcController extends Controller
             'auto_comment' => 'nullable|string',
         ]);
     }
+
+
+
+    public function syncFromAcrn()
+{
+    try {
+        Artisan::call('pbmc:sync');
+        $output = Artisan::output();
+        
+        return redirect()->back()->with('success', 'Data synced successfully! ' . $output);
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Sync failed: ' . $e->getMessage());
+    }
+}
+
+
 }
