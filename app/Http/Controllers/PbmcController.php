@@ -311,15 +311,36 @@ class PbmcController extends Controller
     }
 
 
-
-    public function syncFromAcrn()
+public function syncFromAcrn()
 {
     try {
         Artisan::call('pbmc:sync');
         $output = Artisan::output();
         
-        return redirect()->back()->with('success', 'Data synced successfully! ' . $output);
+        // Check if the sync actually failed by looking for error indicators in output
+        if (str_contains($output, 'Sync Failed') || 
+            str_contains($output, 'Error') || 
+            str_contains($output, 'SQLSTATE') ||
+            str_contains($output, 'timeout expired')) {
+            
+            // Extract a cleaner error message
+            if (str_contains($output, 'timeout expired')) {
+                return redirect()->back()->with('error', 'Sync failed: Cannot connect to ACRN database. Please check network connectivity or contact your administrator.');
+            }
+            
+            return redirect()->back()->with('error', 'Sync failed. Please check the error logs or contact your administrator.');
+        }
+        
+        // Check for successful sync indicators
+        if (str_contains($output, 'records synced') || str_contains($output, 'Processing')) {
+            return redirect()->back()->with('success', 'Data synced successfully from ACRN database!');
+        }
+        
+        // If we can't determine success or failure, show the output
+        return redirect()->back()->with('success', 'Sync process completed. ' . strip_tags($output));
+        
     } catch (\Exception $e) {
+        \Log::error('PBMC Sync Error: ' . $e->getMessage());
         return redirect()->back()->with('error', 'Sync failed: ' . $e->getMessage());
     }
 }
