@@ -62,13 +62,33 @@
                        class="w-full rounded-lg border px-4 py-2.5 text-sm">
             </div>
 
-            <!-- Department -->
+            <!-- Department (LOCKED) -->
             <div>
                 <label class="block text-sm font-medium mb-1">Department</label>
-                <input type="text"
-                       name="department"
-                       value="{{ old('department', $user->department) }}"
-                       class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                <select name="department"
+                        class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white">
+                    <option value="">Select department</option>
+
+                    @php
+                        $dept = old('department', $user->department);
+                    @endphp
+
+                    <option value="IT and Data Systems" {{ $dept === 'IT and Data Systems' ? 'selected' : '' }}>
+                        IT and Data Systems
+                    </option>
+                    <option value="Laboratory" {{ $dept === 'Laboratory' ? 'selected' : '' }}>
+                        Laboratory
+                    </option>
+                    <option value="CEO's Office" {{ $dept === "CEO's Office" ? 'selected' : '' }}>
+                        CEO's Office
+                    </option>
+                    <option value="Data Protection" {{ $dept === 'Data Protection' ? 'selected' : '' }}>
+                        Data Protection
+                    </option>
+                    <option value="Data Science" {{ $dept === 'Data Science' ? 'selected' : '' }}>
+                        Data Science
+                    </option>
+                </select>
             </div>
 
             <!-- Job Title -->
@@ -94,10 +114,10 @@
                 <label class="block text-sm font-medium mb-1">User Role</label>
                 <select name="user_type"
                         class="w-full rounded-lg border px-4 py-2.5 text-sm">
-                    <option value="user" {{ $user->user_type === 'user' ? 'selected' : '' }}>
+                    <option value="user" {{ old('user_type', $user->user_type) === 'user' ? 'selected' : '' }}>
                         User
                     </option>
-                    <option value="admin" {{ $user->user_type === 'admin' ? 'selected' : '' }}>
+                    <option value="admin" {{ old('user_type', $user->user_type) === 'admin' ? 'selected' : '' }}>
                         Admin
                     </option>
                 </select>
@@ -111,7 +131,7 @@
                         <input type="radio"
                                name="user_status"
                                value="1"
-                               {{ $user->user_status ? 'checked' : '' }}>
+                               {{ old('user_status', $user->user_status) == 1 ? 'checked' : '' }}>
                         <span class="text-sm">Active</span>
                     </label>
 
@@ -119,7 +139,7 @@
                         <input type="radio"
                                name="user_status"
                                value="0"
-                               {{ !$user->user_status ? 'checked' : '' }}>
+                               {{ old('user_status', $user->user_status) == 0 ? 'checked' : '' }}>
                         <span class="text-sm">Disabled</span>
                     </label>
                 </div>
