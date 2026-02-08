@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 use Throwable;
 
 class PbmcController extends Controller
@@ -345,5 +346,98 @@ public function syncFromAcrn()
     }
 }
 
+
+
+public function exportAll()
+    {
+        $pbmcs = Pbmc::all();
+        return $this->generateCsv($pbmcs, 'pbmc_records_all_' . date('Y-m-d_His') . '.csv');
+    }
+
+    /**
+     * Export selected records to CSV
+     */
+    public function exportSelected(Request $request)
+    {
+        $selectedIds = $request->input('selected_ids', []);
+        
+        if (empty($selectedIds)) {
+            return redirect()->back()->with('error', 'No records selected for export');
+        }
+        
+        $pbmcs = Pbmc::whereIn('id', $selectedIds)->get();
+        return $this->generateCsv($pbmcs, 'pbmc_records_selected_' . date('Y-m-d_His') . '.csv');
+    }
+
+    /**
+     * Generate CSV file from PBMC records
+     */
+    private function generateCsv($pbmcs, $filename)
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($pbmcs) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Headers
+            fputcsv($file, [
+                'ID',
+                'Study',
+                'PTID',
+                'Visit',
+                'Collection Date',
+                'Collection Time',
+                'Process Start Date',
+                'Process Start Time',
+                'Usable Blood Volume (ml)',
+                'Sample Status',
+                'Counting Method',
+                'Viability %',
+                'Auto Viability %',
+                'Cell Count Concentration',
+                'Total Cell Number',
+                'Auto Total Viable Cells',
+                'Auto Total Cryovials Frozen',
+                'Counting Resuspension',
+                'Source',
+                'Created At',
+                'Updated At',
+            ]);
+
+            // CSV Data
+            foreach ($pbmcs as $pbmc) {
+                fputcsv($file, [
+                    $pbmc->id,
+                    $pbmc->study_choice === 'Other' ? $pbmc->other_study_name : $pbmc->study_choice,
+                    $pbmc->ptid,
+                    $pbmc->visit,
+                    $pbmc->collection_date?->format('Y-m-d'),
+                    $pbmc->collection_time,
+                    $pbmc->process_start_date?->format('Y-m-d'),
+                    $pbmc->process_start_time,
+                    $pbmc->usable_blood_volume,
+                    is_array($pbmc->sample_status) ? implode(', ', $pbmc->sample_status) : $pbmc->sample_status,
+                    $pbmc->counting_method,
+                    $pbmc->viability_percent,
+                    $pbmc->auto_viability_percent,
+                    $pbmc->cell_count_concentration,
+                    $pbmc->total_cell_number,
+                    $pbmc->auto_total_viable_cells_original,
+                    $pbmc->auto_total_cryovials_frozen,
+                    $pbmc->counting_resuspension,
+                    $pbmc->imported_from_acrn ? 'ACRN' : 'Manual',
+                    $pbmc->created_at?->format('Y-m-d H:i:s'),
+                    $pbmc->updated_at?->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
 
 }

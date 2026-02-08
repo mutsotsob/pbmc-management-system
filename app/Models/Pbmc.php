@@ -66,6 +66,9 @@ class Pbmc extends Model
         'ln2_transfer_last',
         'ln2_transfer_datetime',
         'auto_comment',
+        
+        // ACRN Import Tracking
+        'imported_from_acrn',
     ];
 
     /**
@@ -93,6 +96,7 @@ class Pbmc extends Model
         'plasma_harvesting' => 'boolean',
         'auto_system_clean_done' => 'boolean',
         'auto_qc_passed' => 'boolean',
+        'imported_from_acrn' => 'boolean',
 
         // Decimals
         'usable_blood_volume' => 'decimal:2',

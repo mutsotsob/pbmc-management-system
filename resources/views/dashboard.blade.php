@@ -27,6 +27,16 @@
 @php
     $user = Auth::user();
     $isAdmin = $user && strtolower(trim($user->user_type ?? '')) === 'admin';
+
+    /* ---------- SORT HELPER ---------- */
+    function sort_link($label, $column, $sort, $dir) {
+        $newDir = ($sort === $column && $dir === 'asc') ? 'desc' : 'asc';
+        $arrow  = $sort === $column ? ($dir === 'asc' ? ' ↑' : ' ↓') : '';
+        return '<a href="'.request()->fullUrlWithQuery([
+            'sort' => $column,
+            'dir'  => $newDir,
+        ]).'" class="hover:text-orange-600">'.$label.$arrow.'</a>';
+    }
 @endphp
 
 <div class="flex min-h-screen">
@@ -52,20 +62,11 @@
 
             @if ($isAdmin)
                 <li class="pt-2 text-xs font-semibold text-gray-500 uppercase px-3">Admin</li>
-
                 <li>
                     <a href="{{ route('admin.users') }}"
                        class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
                         <i data-feather="users" class="w-5 h-5 mr-2"></i>
                         Manage Users
-                    </a>
-                </li>
-
-                <li>
-                    <a href="#"
-                       class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
-                        <i data-feather="bar-chart-2" class="w-5 h-5 mr-2"></i>
-                        Basic Analysis
                     </a>
                 </li>
             @endif
@@ -97,7 +98,6 @@
         <nav class="bg-white border-b fixed top-0 left-56 right-0 z-20">
             <div class="px-6 py-4 flex justify-between items-center">
                 <h1 class="text-xl font-bold">PBMC Dashboard</h1>
-
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-pbmc rounded-full flex items-center justify-center text-white font-bold">
                         {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -109,37 +109,6 @@
 
         <!-- Content -->
         <main class="pt-24 px-6 pb-6">
-
-            <!-- Success/Error Messages -->
-            @if(session('success'))
-                <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-start justify-between">
-                    <div class="flex items-start gap-2">
-                        <i data-feather="check-circle" class="w-5 h-5 mt-0.5 text-green-600"></i>
-                        <div>
-                            <p class="font-semibold">Success!</p>
-                            <p class="text-sm">{{ session('success') }}</p>
-                        </div>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-green-600 hover:text-green-800">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start justify-between">
-                    <div class="flex items-start gap-2">
-                        <i data-feather="alert-circle" class="w-5 h-5 mt-0.5 text-red-600"></i>
-                        <div>
-                            <p class="font-semibold">Error!</p>
-                            <p class="text-sm">{{ session('error') }}</p>
-                        </div>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            @endif
 
             <div class="bg-white rounded-xl border p-6">
 
@@ -153,55 +122,66 @@
 
                 <div class="border rounded-xl overflow-hidden">
 
-                    <!-- HEADER WITH CREATE & SYNC BUTTONS -->
+                    <!-- Header -->
                     <div class="px-5 py-4 bg-gray-50 border-b flex justify-between items-center">
                         <h3 class="font-semibold">PBMC Records</h3>
 
-                        <div class="flex items-center gap-3">
-                            <!-- Sync Button (Admin Only) -->
-                            @if ($isAdmin)
-                                <form action="{{ route('pbmcs.sync') }}" method="POST" 
-                                      onsubmit="return confirm('Are you sure you want to sync data from ACRN database? This may take a few minutes.');"
-                                      class="inline-block">
-                                    @csrf
-                                    <button type="submit"
-                                            class="inline-flex items-center gap-2 bg-blue-600 text-white
-                                                   px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">
-                                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                                        Sync from ACRN
-                                    </button>
-                                </form>
-                            @endif
-
-                            <!-- Add Record Button -->
-                            <a href="{{ route('pbmc.create') }}"
-                               class="inline-flex items-center gap-2 bg-green-600 text-white
-                                      px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">
-                                <i data-feather="plus" class="w-4 h-4"></i>
-                                Add Record
-                            </a>
-                        </div>
+                        <a href="{{ route('pbmc.create') }}"
+                           class="inline-flex items-center gap-2 bg-green-600 text-white
+                                  px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+                            <i data-feather="plus" class="w-4 h-4"></i>
+                            Add Record
+                        </a>
                     </div>
 
                     <div class="p-6">
 
-                        @if ($pbmcs->isEmpty())
-                            <div class="text-center py-10 text-gray-600">
-                                <i data-feather="inbox" class="w-12 h-12 mx-auto mb-3 text-gray-400"></i>
-                                <p class="text-lg font-semibold mb-1">No PBMC records found</p>
-                                <p class="text-sm">Get started by adding a new record or syncing from ACRN database.</p>
+                        <!-- Bulk Actions -->
+                        <div id="bulkActionsBar"
+                             class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                            <span class="text-sm font-medium text-blue-900">
+                                <span id="selectedCount">0</span> record(s) selected
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="exportSelected()"
+                                        class="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700">
+                                    <i data-feather="download" class="w-4 h-4"></i>
+                                    Export Selected
+                                </button>
+                                <button onclick="clearSelection()"
+                                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    Clear
+                                </button>
                             </div>
-                        @else
-                            <div class="overflow-x-auto">
+                        </div>
+
+                        <!-- Export All -->
+                        <div class="mb-4 flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                Showing {{ $pbmcs->firstItem() }} to {{ $pbmcs->lastItem() }} of {{ $pbmcs->total() }} records
+                            </div>
+                            <a href="{{ route('pbmcs.export') }}"
+                               class="inline-flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700">
+                                <i data-feather="download" class="w-4 h-4"></i>
+                                Export All to CSV
+                            </a>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <form id="exportForm" method="POST" action="{{ route('pbmcs.export.selected') }}">
+                                @csrf
                                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                                     <thead class="bg-gray-50">
                                         <tr class="text-left text-xs font-semibold text-gray-600 uppercase">
-                                            <th class="px-4 py-3">Study</th>
-                                            <th class="px-4 py-3">PTID</th>
-                                            <th class="px-4 py-3">Visit</th>
-                                            <th class="px-4 py-3">Collection Date</th>
-                                            <th class="px-4 py-3">Viability</th>
-                                            <th class="px-4 py-3">Source</th>
+                                            <th class="px-4 py-3">
+                                                <input type="checkbox" id="selectAll"
+                                                       class="rounded border-gray-300 text-pbmc focus:ring-pbmc"
+                                                       onchange="toggleAll(this)">
+                                            </th>
+                                            <th class="px-4 py-3">{!! sort_link('PTID', 'ptid', $sort, $dir) !!}</th>
+                                            <th class="px-4 py-3">{!! sort_link('Collection Date', 'collection_date', $sort, $dir) !!}</th>
+                                            <th class="px-4 py-3">{!! sort_link('Viability', 'viability_percent', $sort, $dir) !!}</th>
+                                            <th class="px-4 py-3">{!! sort_link('Source', 'imported_from_acrn', $sort, $dir) !!}</th>
                                             <th class="px-4 py-3 text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -209,65 +189,57 @@
                                     <tbody class="divide-y bg-white">
                                         @foreach ($pbmcs as $pbmc)
                                             <tr class="hover:bg-gray-50">
-                                                <td class="px-4 py-3 font-medium">
-                                                    {{ $pbmc->study_choice === 'Other'
-                                                        ? $pbmc->other_study_name
-                                                        : $pbmc->study_choice }}
+                                                <td class="px-4 py-3">
+                                                    <input type="checkbox" name="selected_ids[]"
+                                                           class="row-checkbox rounded border-gray-300 text-pbmc focus:ring-pbmc"
+                                                           onchange="updateSelection()">
                                                 </td>
                                                 <td class="px-4 py-3">{{ $pbmc->ptid }}</td>
-                                                <td class="px-4 py-3">{{ $pbmc->visit }}</td>
+                                                <td class="px-4 py-3">{{ $pbmc->collection_date?->format('d M Y') }}</td>
                                                 <td class="px-4 py-3">
-                                                    {{ $pbmc->collection_date?->format('d M Y') }}
-                                                </td>
-                                                <td class="px-4 py-3">
-                                                    @php
-                                                        $v = $pbmc->viability_percent ?? $pbmc->auto_viability_percent;
-                                                    @endphp
+                                                    @php $v = $pbmc->viability_percent ?? $pbmc->auto_viability_percent; @endphp
                                                     @if($v !== null)
                                                         <span class="px-2 py-1 text-xs rounded-full
                                                             {{ $v >= 80 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                                            {{ number_format($v, 1) }}%
+                                                            {{ number_format($v,1) }}%
                                                         </span>
                                                     @else
                                                         <span class="text-gray-400 text-xs">N/A</span>
                                                     @endif
                                                 </td>
                                                 <td class="px-4 py-3">
-                                                    @if($pbmc->imported_from_acrn ?? false)
-                                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-                                                            <i data-feather="database" class="w-3 h-3"></i>
-                                                            ACRN
-                                                        </span>
-                                                    @else
-                                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
-                                                            <i data-feather="edit" class="w-3 h-3"></i>
-                                                            Manual
-                                                        </span>
-                                                    @endif
+                                                    {{ ($pbmc->imported_from_acrn ?? false) ? 'ACRN' : 'Manual' }}
                                                 </td>
+
+                                                <!-- ACTIONS -->
                                                 <td class="px-4 py-3 text-right">
-                                                    <a href="{{ route('pbmc.show', $pbmc) }}"
-                                                       class="text-pbmc hover:underline font-medium">
-                                                        View
-                                                    </a>
+                                                    <div class="inline-flex items-center gap-3 justify-end">
+                                                        <a href="{{ route('pbmc.show', $pbmc) }}"
+                                                           class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium">
+                                                            <i data-feather="eye" class="w-4 h-4"></i>
+                                                            View
+                                                        </a>
+
+                                                        <a href="{{ route('pbmc.edit', $pbmc) }}"
+                                                           class="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 font-medium">
+                                                            <i data-feather="edit" class="w-4 h-4"></i>
+                                                            Edit
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
-                            </div>
+                            </form>
+                        </div>
 
-                            <!-- Pagination if needed -->
-                            @if(method_exists($pbmcs, 'links'))
-                                <div class="mt-4">
-                                    {{ $pbmcs->links() }}
-                                </div>
-                            @endif
-                        @endif
+                        <div class="mt-6">
+                            {{ $pbmcs->links() }}
+                        </div>
 
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
@@ -276,15 +248,36 @@
 <script src="https://unpkg.com/feather-icons"></script>
 <script>
     feather.replace();
-    
-    // Auto-hide alerts after 10 seconds
-    setTimeout(() => {
-        document.querySelectorAll('.bg-green-50, .bg-red-50').forEach(el => {
-            el.style.transition = 'opacity 0.5s';
-            el.style.opacity = '0';
-            setTimeout(() => el.remove(), 500);
-        });
-    }, 10000);
+
+    function toggleAll(checkbox) {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = checkbox.checked);
+        updateSelection();
+    }
+
+    function updateSelection() {
+        const checked = document.querySelectorAll('.row-checkbox:checked').length;
+        document.getElementById('selectedCount').textContent = checked;
+        document.getElementById('bulkActionsBar').classList.toggle('hidden', checked === 0);
+
+        const all = document.querySelectorAll('.row-checkbox').length;
+        const selectAll = document.getElementById('selectAll');
+        selectAll.checked = checked === all && checked > 0;
+        selectAll.indeterminate = checked > 0 && checked < all;
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAll').checked = false;
+        updateSelection();
+    }
+
+    function exportSelected() {
+        if (!document.querySelectorAll('.row-checkbox:checked').length) {
+            alert('Please select at least one record');
+            return;
+        }
+        document.getElementById('exportForm').submit();
+    }
 </script>
 
 </body>

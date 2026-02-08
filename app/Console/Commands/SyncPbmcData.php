@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\AcrnPbmc;
-use App\Models\Pbmc; // Your local PBMC model
+use App\Models\Pbmc;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -72,46 +72,73 @@ class SyncPbmcData extends Command
             
             foreach ($externalData as $record) {
                 try {
-                    // Check if record exists locally using sample_id as unique identifier
-                    $existing = Pbmc::where('sample_id', $record->sample_id)->first();
+                    // Check if record exists locally using ptid and visit as unique identifier
+                    // ACRN's sample_id is the PTID
+                    $existing = Pbmc::where('ptid', $record->sample_id)
+                        ->where('visit', $record->visit_number)
+                        ->first();
                     
-                    // Prepare data for local database
-                    // Convert sample_date from "28-Jul-25" format to Y-m-d
-                    $sampleDate = null;
+                    // Parse sample_date from "28-Jul-25" format to Y-m-d
+                    $collectionDate = null;
                     if ($record->sample_date) {
                         try {
-                            $sampleDate = \Carbon\Carbon::createFromFormat('d-M-y', $record->sample_date)->format('Y-m-d');
+                            $collectionDate = \Carbon\Carbon::createFromFormat('d-M-y', $record->sample_date)->format('Y-m-d');
                         } catch (\Exception $e) {
-                            // If parsing fails, try to use as-is or set to null
-                            $sampleDate = $record->sample_date;
+                            Log::warning("Could not parse date: {$record->sample_date} for {$record->sample_id}");
                         }
                     }
                     
+                    // Parse time fields safely
+                    $collectionTime = null;
+                    if ($record->blood_draw_time) {
+                        try {
+                            $collectionTime = \Carbon\Carbon::parse($record->blood_draw_time)->format('H:i:s');
+                        } catch (\Exception $e) {
+                            Log::warning("Could not parse blood_draw_time: {$record->blood_draw_time} for {$record->sample_id}");
+                        }
+                    }
+                    
+                    $processStartTime = null;
+                    if ($record->lab_processing_start_time) {
+                        try {
+                            $processStartTime = \Carbon\Carbon::parse($record->lab_processing_start_time)->format('H:i:s');
+                        } catch (\Exception $e) {
+                            Log::warning("Could not parse lab_processing_start_time: {$record->lab_processing_start_time} for {$record->sample_id}");
+                        }
+                    }
+                    
+                    // Map ACRN fields to local Pbmc fields
                     $data = [
-                        'sample_id' => $record->sample_id,
-                        'visit_number' => $record->visit_number,
-                        'sample_date' => $sampleDate,
-                        'total_blood_volume_ml' => $record->total_blood_volume_ml,
-                        'blood_draw_time' => $record->blood_draw_time,
-                        'sample_condition' => $record->sample_condition,
-                        'viability_percent' => $record->viability_percent,
-                        'viable_cells_per_ml' => $record->viable_cells_per_ml,
-                        'resuspension_volume_ml' => $record->resuspension_volume_ml,
-                        'total_viable_cells' => $record->total_viable_cells,
-                        'cell_yield_per_ml' => $record->cell_yield_per_ml,
-                        'cells_per_vial' => $record->cells_per_vial,
-                        'cryovials_frozen' => $record->cryovials_frozen,
-                        'lab_processing_start_time' => $record->lab_processing_start_time,
-                        'freezing_time' => $record->freezing_time,
-                        'processing_to_freezing_duration' => $record->processing_to_freezing_duration,
-                        'blood_draw_to_freezing_duration' => $record->blood_draw_to_freezing_duration,
-                        'operator_initials' => $record->operator_initials,
-                        'comments' => $record->comments,
+                        // Study Information
+                        'study_choice' => 'ACRN Import',
+                        'other_study_name' => null,
+                        
+                        // PT Details
+                        'ptid' => $record->sample_id,  // ACRN sample_id = local ptid
+                        'visit' => $record->visit_number,
+                        'collection_date' => $collectionDate,
+                        'collection_time' => $collectionTime,
+                        'process_start_date' => $collectionDate, // Use collection date as default
+                        'process_start_time' => $processStartTime,
+                        
+                        // Processing Data
+                        'usable_blood_volume' => $record->total_blood_volume_ml,
+                        'sample_status' => $record->sample_condition ? [$record->sample_condition] : null,
+                        'counting_method' => 'Automated', // ACRN data is automated
+                        
+                        // Calculated Outcomes
+                        'counting_resuspension' => $record->resuspension_volume_ml,
+                        'cell_count_concentration' => $record->viable_cells_per_ml,
+                        'total_cell_number' => $record->total_viable_cells,
+                        
+                        // Automated Cell Count (this is where ACRN data belongs)
+                        'auto_viability_percent' => $record->viability_percent,
+                        'auto_total_viable_cells_original' => $record->total_viable_cells,
+                        'auto_total_cryovials_frozen' => $record->cryovials_frozen,
+                        'auto_comment' => $record->comments,
                         
                         // Mark as imported from ACRN
                         'imported_from_acrn' => true,
-                        'acrn_pbmc_id' => $record->pbmc_id,
-                        'acrn_synced_at' => now(),
                     ];
                     
                     if ($existing) {

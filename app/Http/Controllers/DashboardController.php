@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -28,12 +29,31 @@ private function ensureAdmin()
         return view('settings.index');
     }
 
-    public function dashboard()
-    {
-        $pbmcs = Pbmc::latest()->get(); 
+    public function dashboard(Request $request)
+{
+    $allowedSorts = [
+        'ptid',
+        'visit',
+        'collection_date',
+        'viability_percent',
+        'imported_from_acrn',
+        'created_at',
+    ];
 
-        return view('dashboard', compact('pbmcs'));
+    $sort = $request->query('sort', 'collection_date');
+    $dir  = $request->query('dir', 'desc') === 'asc' ? 'asc' : 'desc';
+
+    if (!in_array($sort, $allowedSorts, true)) {
+        $sort = 'collection_date';
     }
+
+    $pbmcs = Pbmc::orderBy($sort, $dir)
+        ->paginate(15)
+        ->withQueryString();
+
+    return view('dashboard', compact('pbmcs', 'sort', 'dir'));
+}
+
 
     public function updatePassword(Request $request)
     {
@@ -208,6 +228,7 @@ public function bulkDisableUsers(Request $request)
 
     return back()->with('success', 'Selected users disabled successfully.');
 }
+
 
 
 }

@@ -48,7 +48,8 @@ Route::patch('/admin/users/bulk/disable', [DashboardController::class, 'bulkDisa
 Route::post('/pbmcs/sync-from-acrn', [PbmcController::class, 'syncFromAcrn'])
     ->name('pbmcs.sync');
 
-
+Route::get('/pbmcs/export', [PbmcController::class, 'exportAll'])->name('pbmcs.export');
+Route::post('/pbmcs/export-selected', [PbmcController::class, 'exportSelected'])->name('pbmcs.export.selected');
 });
 
 require __DIR__.'/auth.php';
