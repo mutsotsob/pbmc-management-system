@@ -108,17 +108,45 @@
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+ {{-- Department --}}
+               <div>
+    <label class="block text-sm font-medium mb-1">Department</label>
 
-                {{-- Department --}}
-                <div>
-                    <label class="block text-sm font-medium mb-1">Department</label>
-                    <input type="text" name="department" value="{{ old('department') }}"
-                           class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white"
-                           placeholder="e.g. Laboratory">
-                    @error('department')
-                        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+    <select name="department"
+            class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white">
+        <option value="">Select department</option>
+
+        <option value="IT and Data Systems"
+            {{ old('department') === 'IT and Data Systems' ? 'selected' : '' }}>
+            IT and Data Systems
+        </option>
+
+        <option value="Laboratory"
+            {{ old('department') === 'Laboratory' ? 'selected' : '' }}>
+            Laboratory
+        </option>
+
+        <option value="CEO's Office"
+            {{ old('department') === "CEO's Office" ? 'selected' : '' }}>
+            CEO's Office
+        </option>
+
+        <option value="Data Protection"
+            {{ old('department') === 'Data Protection' ? 'selected' : '' }}>
+            Data Protection
+        </option>
+
+        <option value="Data Science"
+            {{ old('department') === 'Data Science' ? 'selected' : '' }}>
+            Data Science
+        </option>
+    </select>
+
+    @error('department')
+        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
 
                 {{-- Job Title --}}
                 <div>

@@ -141,7 +141,13 @@ public function storeUser(Request $request)
     $validated = $request->validate([
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'email', 'unique:users,email'],
-        'department' => ['nullable', 'string', 'max:255'],
+
+        // 🔒 LOCKED DEPARTMENTS
+        'department' => [
+            'nullable',
+            'in:IT and Data Systems,Laboratory,CEO\'s Office,Data Protection,Data Science'
+        ],
+
         'job_title' => ['nullable', 'string', 'max:255'],
         'user_type' => ['required', 'in:admin,user'],
         'password' => ['required', 'min:8', 'confirmed'],
@@ -157,6 +163,7 @@ public function storeUser(Request $request)
         ->route('admin.users')
         ->with('success', 'User created successfully.');
 }
+
 
 /**
  * Show user details
