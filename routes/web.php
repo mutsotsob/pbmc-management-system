@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
         ->name('admin.users.toggle-status');
     Route::put('/admin/users/{user}', [DashboardController::class, 'updateUser'])
     ->name('admin.users.update');
+    
 
     Route::post('/admin/users/bulk/enable', [DashboardController::class, 'bulkEnableUsers'])->name('admin.users.bulk.enable');
 Route::patch('/admin/users/bulk/disable', [DashboardController::class, 'bulkDisableUsers'])->name('admin.users.bulk.disable');

@@ -237,5 +237,27 @@ public function bulkDisableUsers(Request $request)
 }
 
 
+public function updateUser(Request $request, User $user)
+{
+    $this->ensureAdmin();
+
+    $validated = $request->validate([
+        'name'        => ['required', 'string', 'max:255'],
+        'email'       => ['required', 'email', 'unique:users,email,' . $user->id],
+        'department'  => ['nullable', 'string', 'max:255'],
+        'job_title'   => ['nullable', 'string', 'max:255'],
+        'user_type'   => ['required', 'in:admin,user'],
+        'user_status' => ['required', 'boolean'],
+        'phone_number'=> ['nullable', 'string', 'max:50'],
+    ]);
+
+    $user->update($validated);
+
+    return redirect()
+        ->route('admin.users')
+        ->with('success', 'User updated successfully.');
+}
+
+
 
 }

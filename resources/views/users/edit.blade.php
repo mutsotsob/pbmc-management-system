@@ -37,8 +37,8 @@
             </ul>
         </div>
     @endif
+<form method="POST" action="{{ route('admin.users.update', ['user' => $user->id]) }}">
 
-    <form method="POST" action="{{ route('admin.users.store', $user->id) }}">
         @csrf
         @method('PUT')
 
