@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PbmcController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AnalyticsController;
 
 
 Route::get('/', function () {
@@ -50,6 +51,14 @@ Route::post('/pbmcs/sync-from-acrn', [PbmcController::class, 'syncFromAcrn'])
 
 Route::get('/pbmcs/export', [PbmcController::class, 'exportAll'])->name('pbmcs.export');
 Route::post('/pbmcs/export-selected', [PbmcController::class, 'exportSelected'])->name('pbmcs.export.selected');
+
+
+
+// Analytics Dashboard
+Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+Route::get('/analytics/filter/{filter}', [AnalyticsController::class, 'getFilteredData'])->name('analytics.filter');
+
+
 });
 
 require __DIR__.'/auth.php';

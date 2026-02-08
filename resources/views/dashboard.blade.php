@@ -64,12 +64,12 @@
                 <li class="pt-2 text-xs font-semibold text-gray-500 uppercase px-3">Admin</li>
 
                  <li>
-                    <a href="{{ url('/admin/basic-analysis') }}"
-                       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-                        <i data-feather="bar-chart-2" class="w-5 h-5 mr-2 text-gray-500"></i>
-                        Overview
-                    </a>
-                </li>
+    <a href="{{ route('analytics.index') }}"
+       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
+        <i data-feather="bar-chart-2" class="w-5 h-5 mr-2 text-gray-500"></i>
+        Analytics
+    </a>
+</li>
 
                 <li>
                     <a href="{{ route('admin.users') }}"
@@ -84,7 +84,7 @@
                 <a href="{{ url('/settings') }}"
                    class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
                     <i data-feather="settings" class="w-5 h-5 mr-2"></i>
-                    Settings
+                    My Profile
                 </a>
             </li>
 
@@ -190,7 +190,7 @@
                                             <th class="px-4 py-3">{!! sort_link('PTID', 'ptid', $sort, $dir) !!}</th>
                                             <th class="px-4 py-3">{!! sort_link('Collection Date', 'collection_date', $sort, $dir) !!}</th>
                                             <th class="px-4 py-3">{!! sort_link('Viability', 'viability_percent', $sort, $dir) !!}</th>
-                                            <th class="px-4 py-3">{!! sort_link('Source', 'imported_from_acrn', $sort, $dir) !!}</th>
+                                            <!-- <th class="px-4 py-3">{!! sort_link('Source', 'imported_from_acrn', $sort, $dir) !!}</th> -->
                                             <th class="px-4 py-3 text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -216,9 +216,9 @@
                                                         <span class="text-gray-400 text-xs">N/A</span>
                                                     @endif
                                                 </td>
-                                                <td class="px-4 py-3">
+                                                <!-- <td class="px-4 py-3">
                                                     {{ ($pbmc->imported_from_acrn ?? false) ? 'ACRN' : 'Manual' }}
-                                                </td>
+                                                </td> -->
 
                                                 <!-- ACTIONS -->
                                                 <td class="px-4 py-3 text-right">
