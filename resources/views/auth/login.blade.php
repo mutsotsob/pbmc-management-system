@@ -9,7 +9,7 @@
         >
 
         <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-            PBMC Management System
+            PBMC Records
         </h1>
 
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -59,25 +59,11 @@
         <!-- Remember me -->
         <div class="flex items-center justify-between">
             <label for="remember_me" class="inline-flex items-center">
-                <input
-                    id="remember_me"
-                    type="checkbox"
-                    class="rounded border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600"
-                    name="remember"
-                >
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                    {{ __('Remember me') }}
-                </span>
+                
+
             </label>
 
-            @if (Route::has('password.request'))
-                <a
-                    class="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-                    href="{{ route('password.request') }}"
-                >
-                    {{ __('Forgot password?') }}
-                </a>
-            @endif
+            
         </div>
 
         <!-- Submit -->
