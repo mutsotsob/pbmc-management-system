@@ -56,7 +56,7 @@
                 <a href="{{ route('dashboard') }}"
                    class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
                     <i data-feather="home" class="w-5 h-5 mr-2"></i>
-                    Dashboard
+                    Home
                 </a>
             </li>
 
