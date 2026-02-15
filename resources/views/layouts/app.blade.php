@@ -58,12 +58,7 @@
 
             {{-- ✅ ADMIN ONLY: always show if admin, never show if not --}}
             @if ($isAdmin)
-                <li class="pt-2">
-                    <p class="px-3 text-[11px] font-semibold text-gray-500 uppercase tracking-widest">
-                        Admin
-                    </p>
-                </li>
-
+              
                 <li>
                     <a href="{{ url('/admin/users') }}"
                        class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
