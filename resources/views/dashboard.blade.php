@@ -61,9 +61,7 @@
             </li>
 
             @if ($isAdmin)
-                <li class="pt-2 text-xs font-semibold text-gray-500 uppercase px-3">Admin</li>
-
-                 <li>
+                
     <a href="{{ route('analytics.index') }}"
        class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
         <i data-feather="bar-chart-2" class="w-5 h-5 mr-2 text-gray-500"></i>
