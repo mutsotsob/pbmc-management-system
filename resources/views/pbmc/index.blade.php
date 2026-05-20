@@ -3,6 +3,13 @@
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6">
 
+    @if (session('success'))
+        <x-alert type="success">{{ session('success') }}</x-alert>
+    @endif
+    @if (session('error'))
+        <x-alert type="error">{{ session('error') }}</x-alert>
+    @endif
+
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>

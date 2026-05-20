@@ -35,7 +35,7 @@ class UserSeeder extends Seeder
                 'department' => 'IT and Data Systems',
                 'job_title' => 'Software Developer Associate',
                 'phone_number' => '0787780405',
-                'user_type' => 'user',
+                'user_type' => 'admin',
                 'user_status' => true, // ACTIVE
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),

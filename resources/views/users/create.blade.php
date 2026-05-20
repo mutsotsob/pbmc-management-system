@@ -7,42 +7,19 @@
 @section('content')
 <div class="max-w-4xl mx-auto">
 
-    {{-- SUCCESS ALERT --}}
     @if (session('success'))
-        <div
-            x-data="{ show: true }"
-            x-init="setTimeout(() => show = false, 7000)"
-            x-show="show"
-            x-transition
-            class="mb-5 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700 text-sm"
-        >
-            {{ session('success') }}
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
-
-    {{-- ERROR ALERT --}}
     @if (session('error'))
-        <div
-            x-data="{ show: true }"
-            x-init="setTimeout(() => show = false, 7000)"
-            x-show="show"
-            x-transition
-            class="mb-5 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm"
-        >
-            {{ session('error') }}
-        </div>
+        <x-alert type="error">{{ session('error') }}</x-alert>
     @endif
-
-    {{-- VALIDATION ERRORS --}}
     @if ($errors->any())
-        <div class="mb-5 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm">
-            <p class="font-semibold mb-2">Please fix the errors below:</p>
-            <ul class="list-disc ml-5 space-y-1">
-                @foreach ($errors->all() as $e)
-                    <li>{{ $e }}</li>
-                @endforeach
+        <x-alert type="error" :dismissible="false">
+            <strong>Please fix the errors below:</strong>
+            <ul class="list-disc ml-4 mt-1 space-y-0.5">
+                @foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach
             </ul>
-        </div>
+        </x-alert>
     @endif
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -116,30 +93,11 @@
             class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white">
         <option value="">Select department</option>
 
-        <option value="IT and Data Systems"
-            {{ old('department') === 'IT and Data Systems' ? 'selected' : '' }}>
-            IT and Data Systems
-        </option>
-
-        <option value="Laboratory"
-            {{ old('department') === 'Laboratory' ? 'selected' : '' }}>
-            Laboratory
-        </option>
-
-        <option value="CEO's Office"
-            {{ old('department') === "CEO's Office" ? 'selected' : '' }}>
-            CEO's Office
-        </option>
-
-        <option value="Data Protection"
-            {{ old('department') === 'Data Protection' ? 'selected' : '' }}>
-            Data Protection
-        </option>
-
-        <option value="Data Science"
-            {{ old('department') === 'Data Science' ? 'selected' : '' }}>
-            Data Science
-        </option>
+        @foreach(config('departments') as $dept)
+            <option value="{{ $dept }}" {{ old('department') === $dept ? 'selected' : '' }}>
+                {{ $dept }}
+            </option>
+        @endforeach
     </select>
 
     @error('department')

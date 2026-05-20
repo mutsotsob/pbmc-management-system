@@ -7,19 +7,11 @@
 @section('content')
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
-    {{-- Alerts --}}
     @if (session('success'))
-        <div x-data="{ show:true }" x-init="setTimeout(()=>show=false,7000)" x-show="show" x-transition
-             class="mb-5 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700 text-sm">
-            {{ session('success') }}
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
-
     @if (session('error'))
-        <div x-data="{ show:true }" x-init="setTimeout(()=>show=false,7000)" x-show="show" x-transition
-             class="mb-5 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm">
-            {{ session('error') }}
-        </div>
+        <x-alert type="error">{{ session('error') }}</x-alert>
     @endif
 
     <!-- Header -->
@@ -56,7 +48,7 @@
                 </button>
 
                 @if(request('q'))
-                    <a href="{{ route('admin.users.index', ['sort' => request('sort','name'), 'dir' => request('dir','asc')]) }}"
+                    <a href="{{ route('admin.users', ['sort' => request('sort','name'), 'dir' => request('dir','asc')]) }}"
                        class="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
                         Clear
                     </a>
@@ -151,17 +143,11 @@
                             <td class="px-4 py-3 text-sm text-gray-700">{{ $u->job_title ?? '—' }}</td>
 
                             <td class="px-4 py-3 text-sm">
-                                <span class="px-2 py-1 rounded text-xs font-semibold
-                                    {{ $u->user_type === 'admin' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700' }}">
-                                    {{ ucfirst($u->user_type) }}
-                                </span>
+                                <x-status-badge :value="ucfirst($u->user_type)" />
                             </td>
 
                             <td class="px-4 py-3 text-sm">
-                                <span class="px-2 py-1 rounded text-xs font-semibold
-                                    {{ $u->user_status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                    {{ $u->user_status ? 'Active' : 'Disabled' }}
-                                </span>
+                                <x-status-badge :value="$u->user_status ? 'Active' : 'Disabled'" />
                             </td>
 
                             <td class="px-4 py-3 text-right">
@@ -193,8 +179,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
-                                No users found.
+                            <td colspan="8">
+                                <x-empty-state icon="users" title="No users found." description="Try adjusting your search or create a new user." :action-url="url('/admin/users/create')" action-label="Create User" />
                             </td>
                         </tr>
                     @endforelse
