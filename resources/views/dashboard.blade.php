@@ -18,75 +18,71 @@
             Welcome, {{ auth()->user()?->name }} 👋
         </h2>
 
-
         <div class="mt-8 border rounded-xl overflow-hidden">
-        <div class="px-5 py-4 bg-gray-50 border-b flex justify-between items-center">
-            <div>
-                <h3 class="font-semibold text-gray-800">IAVIC114 Imported Reports</h3>
-                <p class="text-sm text-gray-500 mt-1">
-                    Excel-imported PBMC report data from the production workbook.
-                </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                    {{ $iavicReports->total() }} imported rows
-                </span>
-                <a href="{{ route('iavic114-reports.create') }}"
-                   class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700">
-                    <i data-feather="plus" class="h-4 w-4"></i>
-                    Add New Record
-                </a>
-            </div>
-        </div>
-
-            @if ($isAdmin)
-                
-    <a href="{{ route('analytics.index') }}"
-       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-gray-700">
-        <i data-feather="bar-chart-2" class="w-5 h-5 mr-2 text-gray-500"></i>
-        Analytics
-    </a>
-</li>
-
-                <li>
-                    <a href="{{ route('admin.users') }}"
-                       class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
-                        <i data-feather="users" class="w-5 h-5 mr-2"></i>
-                        Manage Users
-                    </a>
-                </li>
-            @endif
-
-            <li class="pt-2">
-                <a href="{{ url('/settings') }}"
-                   class="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100">
-                    <i data-feather="settings" class="w-5 h-5 mr-2"></i>
-                    My Profile
-                </a>
-            </li>
-
-            <li>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="w-full flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg">
-                        <i data-feather="log-out" class="w-5 h-5 mr-2"></i>
-                        Logout
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </aside>
-
-    <!-- Main -->
-    <div class="flex-1 ml-56">
-
-        <!-- Top Nav -->
-        <nav class="bg-white border-b fixed top-0 left-56 right-0 z-20">
-            <div class="px-6 py-4 flex justify-between items-center">
-                <h1 class="text-xl font-bold">PBMC Dashboard</h1>
+            <div class="px-5 py-4 bg-gray-50 border-b flex justify-between items-center">
+                <div>
+                    <h3 class="font-semibold text-gray-800">IAVIC114 Imported Reports</h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Excel-imported PBMC report data from the production workbook.
+                    </p>
+                </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-pbmc rounded-full flex items-center justify-center text-white font-bold">
-                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                        {{ $iavicReports->total() }} imported rows
+                    </span>
+                    <a href="{{ route('iavic114-reports.create') }}"
+                       class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700">
+                        <i data-feather="plus" class="h-4 w-4"></i>
+                        Add New Record
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-6">
+                @php
+                    $hasReportSearch = filled($reportSampleId ?? null) || filled($reportOperator ?? null);
+                @endphp
+
+                <form method="GET" action="{{ route('dashboard') }}"
+                    class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <input type="hidden" name="report_sort" value="{{ $reportSort }}">
+                    <input type="hidden" name="report_dir" value="{{ $reportDir }}">
+
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
+                        <div>
+                            <label for="reportSampleId" class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Sample ID
+                            </label>
+                            <input id="reportSampleId" type="search" name="report_sample_id"
+                                value="{{ $reportSampleId ?? '' }}"
+                                placeholder="C114104003_V02"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-pbmc focus:outline-none focus:ring-1 focus:ring-pbmc">
+                        </div>
+
+                        <div>
+                            <label for="reportOperator" class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                                Operator
+                            </label>
+                            <input id="reportOperator" type="search" name="report_operator"
+                                value="{{ $reportOperator ?? '' }}"
+                                placeholder="BM"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-pbmc focus:outline-none focus:ring-1 focus:ring-pbmc">
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            @if($hasReportSearch)
+                                <a href="{{ route('dashboard', ['report_sort' => $reportSort, 'report_dir' => $reportDir]) }}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    <i data-feather="x" class="h-4 w-4"></i>
+                                    Clear
+                                </a>
+                            @endif
+                            <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 rounded-lg bg-pbmc px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
+                                <i data-feather="search" class="h-4 w-4"></i>
+                                Search
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -162,11 +158,9 @@
                                             'report_sort' => 'sample_id_visit_number',
                                             'report_dir' => $reportSort === 'sample_id_visit_number' && $reportDir === 'asc' ? 'desc' : 'asc',
                                             'reports_page' => 1,
-                                        ]) }}"
-                                            class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
+                                        ]) }}" class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
                                             <span>Sample ID / Visit</span>
-                                            <span aria-hidden="true"
-                                                class="{{ $reportSort === 'sample_id_visit_number' ? 'text-gray-900' : 'text-gray-400' }}">
+                                            <span aria-hidden="true" class="{{ $reportSort === 'sample_id_visit_number' ? 'text-gray-900' : 'text-gray-400' }}">
                                                 {{ $reportSort === 'sample_id_visit_number' ? ($reportDir === 'asc' ? '↑' : '↓') : '↕' }}
                                             </span>
                                         </a>
@@ -176,11 +170,9 @@
                                             'report_sort' => 'report_date',
                                             'report_dir' => $reportSort === 'report_date' && $reportDir === 'asc' ? 'desc' : 'asc',
                                             'reports_page' => 1,
-                                        ]) }}"
-                                            class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
+                                        ]) }}" class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
                                             <span>Date</span>
-                                            <span aria-hidden="true"
-                                                class="{{ $reportSort === 'report_date' ? 'text-gray-900' : 'text-gray-400' }}">
+                                            <span aria-hidden="true" class="{{ $reportSort === 'report_date' ? 'text-gray-900' : 'text-gray-400' }}">
                                                 {{ $reportSort === 'report_date' ? ($reportDir === 'asc' ? '↑' : '↓') : '↕' }}
                                             </span>
                                         </a>
@@ -191,11 +183,9 @@
                                             'report_sort' => 'viability_percent',
                                             'report_dir' => $reportSort === 'viability_percent' && $reportDir === 'asc' ? 'desc' : 'asc',
                                             'reports_page' => 1,
-                                        ]) }}"
-                                            class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
+                                        ]) }}" class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
                                             <span>Viability</span>
-                                            <span aria-hidden="true"
-                                                class="{{ $reportSort === 'viability_percent' ? 'text-gray-900' : 'text-gray-400' }}">
+                                            <span aria-hidden="true" class="{{ $reportSort === 'viability_percent' ? 'text-gray-900' : 'text-gray-400' }}">
                                                 {{ $reportSort === 'viability_percent' ? ($reportDir === 'asc' ? '↑' : '↓') : '↕' }}
                                             </span>
                                         </a>
@@ -206,11 +196,9 @@
                                             'report_sort' => 'cryovials_frozen',
                                             'report_dir' => $reportSort === 'cryovials_frozen' && $reportDir === 'asc' ? 'desc' : 'asc',
                                             'reports_page' => 1,
-                                        ]) }}"
-                                            class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
+                                        ]) }}" class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
                                             <span>Cryovials</span>
-                                            <span aria-hidden="true"
-                                                class="{{ $reportSort === 'cryovials_frozen' ? 'text-gray-900' : 'text-gray-400' }}">
+                                            <span aria-hidden="true" class="{{ $reportSort === 'cryovials_frozen' ? 'text-gray-900' : 'text-gray-400' }}">
                                                 {{ $reportSort === 'cryovials_frozen' ? ($reportDir === 'asc' ? '↑' : '↓') : '↕' }}
                                             </span>
                                         </a>
@@ -220,11 +208,9 @@
                                             'report_sort' => 'operator_initials',
                                             'report_dir' => $reportSort === 'operator_initials' && $reportDir === 'asc' ? 'desc' : 'asc',
                                             'reports_page' => 1,
-                                        ]) }}"
-                                            class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
+                                        ]) }}" class="inline-flex items-center gap-1 hover:text-gray-900 transition-colors">
                                             <span>Operator</span>
-                                            <span aria-hidden="true"
-                                                class="{{ $reportSort === 'operator_initials' ? 'text-gray-900' : 'text-gray-400' }}">
+                                            <span aria-hidden="true" class="{{ $reportSort === 'operator_initials' ? 'text-gray-900' : 'text-gray-400' }}">
                                                 {{ $reportSort === 'operator_initials' ? ($reportDir === 'asc' ? '↑' : '↓') : '↕' }}
                                             </span>
                                         </a>
@@ -290,7 +276,12 @@
                                 @empty
                                     <tr>
                                         <td colspan="9">
-                                            <x-empty-state icon="file-text" title="No imported IAVIC114 records found." description="Import records from Excel or add one manually." :action-url="route('iavic114-reports.create')" action-label="Add Record" />
+                                            <x-empty-state
+                                                icon="file-text"
+                                                title="No imported IAVIC114 records found."
+                                                description="Import records from Excel or add one manually."
+                                                :action-url="route('iavic114-reports.create')"
+                                                action-label="Add Record" />
                                         </td>
                                     </tr>
                                 @endforelse
@@ -309,89 +300,49 @@
 @endsection
 
 @push('scripts')
-    <script>
-        function toggleAll(checkbox) {
-            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = checkbox.checked);
-            updateSelection();
+<script>
+    function toggleAllImported(checkbox) {
+        document.querySelectorAll('.imported-row-checkbox').forEach(cb => cb.checked = checkbox.checked);
+        updateImportedSelection();
+    }
+
+    function updateImportedSelection() {
+        const checked = document.querySelectorAll('.imported-row-checkbox:checked').length;
+        const all = document.querySelectorAll('.imported-row-checkbox').length;
+        const bar = document.getElementById('importedBulkActionsBar');
+        const count = document.getElementById('selectedImportedCount');
+        const selectAllImported = document.getElementById('selectAllImported');
+
+        if (count) count.textContent = checked;
+        if (bar) bar.classList.toggle('hidden', checked === 0);
+
+        if (selectAllImported) {
+            selectAllImported.checked = checked === all && checked > 0;
+            selectAllImported.indeterminate = checked > 0 && checked < all;
         }
+    }
 
-        function updateSelection() {
-            const checked = document.querySelectorAll('.row-checkbox:checked').length;
-            const all = document.querySelectorAll('.row-checkbox').length;
-
-            document.getElementById('selectedCount').textContent = checked;
-            document.getElementById('bulkActionsBar').classList.toggle('hidden', checked === 0);
-
-            const selectAll = document.getElementById('selectAll');
-            selectAll.checked = checked === all && checked > 0;
-            selectAll.indeterminate = checked > 0 && checked < all;
+    function clearImportedSelection() {
+        document.querySelectorAll('.imported-row-checkbox').forEach(cb => cb.checked = false);
+        const selectAllImported = document.getElementById('selectAllImported');
+        if (selectAllImported) {
+            selectAllImported.checked = false;
+            selectAllImported.indeterminate = false;
         }
+        updateImportedSelection();
+    }
 
-        function clearSelection() {
-            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
-            document.getElementById('selectAll').checked = false;
-            updateSelection();
+    function submitImportedExport(action, openInNewTab = false) {
+        const selected = document.querySelectorAll('.imported-row-checkbox:checked').length;
+        if (!selected) {
+            alert('Please select at least one imported report.');
+            return;
         }
-
-        function exportSelected() {
-            if (!document.querySelectorAll('.row-checkbox:checked').length) {
-                alert('Please select at least one record.');
-                return;
-            }
-            document.getElementById('exportForm').submit();
-        }
-
-        function toggleAllImported(checkbox) {
-            document.querySelectorAll('.imported-row-checkbox').forEach(cb => cb.checked = checkbox.checked);
-            updateImportedSelection();
-        }
-
-        function updateImportedSelection() {
-            const checked = document.querySelectorAll('.imported-row-checkbox:checked').length;
-            const all = document.querySelectorAll('.imported-row-checkbox').length;
-            const bar = document.getElementById('importedBulkActionsBar');
-            const count = document.getElementById('selectedImportedCount');
-            const selectAllImported = document.getElementById('selectAllImported');
-
-            if (count) {
-                count.textContent = checked;
-            }
-
-            if (bar) {
-                bar.classList.toggle('hidden', checked === 0);
-            }
-
-            if (selectAllImported) {
-                selectAllImported.checked = checked === all && checked > 0;
-                selectAllImported.indeterminate = checked > 0 && checked < all;
-            }
-        }
-
-        function clearImportedSelection() {
-            document.querySelectorAll('.imported-row-checkbox').forEach(cb => cb.checked = false);
-
-            const selectAllImported = document.getElementById('selectAllImported');
-            if (selectAllImported) {
-                selectAllImported.checked = false;
-                selectAllImported.indeterminate = false;
-            }
-
-            updateImportedSelection();
-        }
-
-        function submitImportedExport(action, openInNewTab = false) {
-            const selected = document.querySelectorAll('.imported-row-checkbox:checked').length;
-
-            if (!selected) {
-                alert('Please select at least one imported report.');
-                return;
-            }
-
-            const form = document.getElementById('importedExportForm');
-            form.action = action;
-            form.target = openInNewTab ? '_blank' : '_self';
-            form.submit();
-            form.target = '_self';
-        }
-    </script>
+        const form = document.getElementById('importedExportForm');
+        form.action = action;
+        form.target = openInNewTab ? '_blank' : '_self';
+        form.submit();
+        form.target = '_self';
+    }
+</script>
 @endpush
