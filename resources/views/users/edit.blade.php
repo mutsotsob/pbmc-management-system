@@ -20,22 +20,15 @@
         </a>
     </div>
 
-    {{-- SUCCESS --}}
     @if (session('success'))
-        <div class="mb-5 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700 text-sm">
-            {{ session('success') }}
-        </div>
+        <x-alert type="success">{{ session('success') }}</x-alert>
     @endif
-
-    {{-- ERRORS --}}
     @if ($errors->any())
-        <div class="mb-5 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm">
-            <ul class="list-disc list-inside">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
+        <x-alert type="error" :dismissible="false">
+            <ul class="list-disc ml-4 space-y-0.5">
+                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>
-        </div>
+        </x-alert>
     @endif
 <form method="POST" action="{{ route('admin.users.update', ['user' => $user->id]) }}">
 
@@ -69,25 +62,11 @@
                         class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white">
                     <option value="">Select department</option>
 
-                    @php
-                        $dept = old('department', $user->department);
-                    @endphp
+                    @php $dept = old('department', $user->department); @endphp
 
-                    <option value="IT and Data Systems" {{ $dept === 'IT and Data Systems' ? 'selected' : '' }}>
-                        IT and Data Systems
-                    </option>
-                    <option value="Laboratory" {{ $dept === 'Laboratory' ? 'selected' : '' }}>
-                        Laboratory
-                    </option>
-                    <option value="CEO's Office" {{ $dept === "CEO's Office" ? 'selected' : '' }}>
-                        CEO's Office
-                    </option>
-                    <option value="Data Protection" {{ $dept === 'Data Protection' ? 'selected' : '' }}>
-                        Data Protection
-                    </option>
-                    <option value="Data Science" {{ $dept === 'Data Science' ? 'selected' : '' }}>
-                        Data Science
-                    </option>
+                    @foreach(config('departments') as $d)
+                        <option value="{{ $d }}" {{ $dept === $d ? 'selected' : '' }}>{{ $d }}</option>
+                    @endforeach
                 </select>
             </div>
 

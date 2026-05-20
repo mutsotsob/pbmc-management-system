@@ -19,14 +19,10 @@
                 </div>
 
                 @if (session('success'))
-                    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div class="flex items-start gap-3">
-                            <i data-feather="check-circle" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5"></i>
-                            <div class="flex-1">
-                                <p class="text-sm text-green-800 font-medium">{{ session('success') }}</p>
-                            </div>
-                        </div>
-                    </div>
+                    <x-alert type="success">{{ session('success') }}</x-alert>
+                @endif
+                @if (session('error'))
+                    <x-alert type="error">{{ session('error') }}</x-alert>
                 @endif
 
                 <div class="bg-white rounded-xl border overflow-hidden">

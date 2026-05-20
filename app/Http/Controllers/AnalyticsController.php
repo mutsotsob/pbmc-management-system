@@ -2,180 +2,176 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pbmc;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\Iavic114PbmcReport;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 
 class AnalyticsController extends Controller
 {
     /**
-     * Display analytics dashboard
+     * Display analytics dashboard.
      */
     public function index()
     {
         $stats = $this->getAnalyticsData();
-        
+
         return view('analytics.index', compact('stats'));
     }
 
     /**
-     * Get comprehensive analytics data
+     * Build dashboard metrics from imported IAVIC114 PBMC reports.
      */
-    private function getAnalyticsData(): array
+    private function getAnalyticsData(?string $filter = null): array
     {
-        // Basic counts
-        $totalRecords = Pbmc::count();
-        $acrnCount = Pbmc::where('imported_from_acrn', true)->count();
-        $manualCount = $totalRecords - $acrnCount;
+        $query = Iavic114PbmcReport::query();
+        $this->applyFilter($query, $filter);
 
-        // Viability statistics
-        $viabilityData = Pbmc::select(
-            DB::raw('COALESCE(viability_percent, auto_viability_percent) as viability')
-        )
-        ->whereNotNull(DB::raw('COALESCE(viability_percent, auto_viability_percent)'))
-        ->get();
+        $reports = $query
+            ->orderBy('report_date')
+            ->get();
 
-        $avgViability = $viabilityData->avg('viability') ?? 0;
-        
-        $viabilityHigh = $viabilityData->filter(fn($p) => $p->viability >= 80)->count();
-        $viabilityMedium = $viabilityData->filter(fn($p) => $p->viability >= 60 && $p->viability < 80)->count();
-        $viabilityLow = $viabilityData->filter(fn($p) => $p->viability < 60)->count();
-        
-        $viableCount = $viabilityHigh;
-        $viablePercentage = $totalRecords > 0 ? ($viableCount / $totalRecords) * 100 : 0;
+        $totalRecords = $reports->count();
+        $reportsWithViability = $reports->filter(fn (Iavic114PbmcReport $report) => $report->viability_percent !== null);
+        $reportsWithComments = $reports->filter(fn (Iavic114PbmcReport $report) => filled($report->comments));
+        $passingReports = $reports->filter(function (Iavic114PbmcReport $report): bool {
+            return strcasecmp((string) $report->sample_condition, 'Pass') === 0;
+        });
 
-        // Cell count totals
-        $totalCells = Pbmc::sum('total_cell_number') ?? 0;
-        if ($totalCells == 0) {
-            $totalCells = Pbmc::sum('auto_total_viable_cells_original') ?? 0;
+        $highViability = $reportsWithViability->filter(fn (Iavic114PbmcReport $report) => (float) $report->viability_percent >= 80)->count();
+        $mediumViability = $reportsWithViability->filter(fn (Iavic114PbmcReport $report) => (float) $report->viability_percent >= 60 && (float) $report->viability_percent < 80)->count();
+        $lowViability = $reportsWithViability->filter(fn (Iavic114PbmcReport $report) => (float) $report->viability_percent < 60)->count();
+
+        $conditionGroups = $reports
+            ->groupBy(fn (Iavic114PbmcReport $report) => $report->sample_condition ?: 'Unknown')
+            ->map->count()
+            ->sortDesc();
+
+        $visitGroups = $reports
+            ->groupBy(fn (Iavic114PbmcReport $report) => $report->visit_code ?: 'Unknown')
+            ->map->count()
+            ->sortDesc()
+            ->take(8);
+
+        $operatorPerformance = $reports
+            ->filter(fn (Iavic114PbmcReport $report) => filled($report->operator_initials))
+            ->groupBy('operator_initials')
+            ->map(function (Collection $group, string $operator): array {
+                $viabilityReports = $group->filter(fn (Iavic114PbmcReport $report) => $report->viability_percent !== null);
+
+                return [
+                    'operator' => $operator,
+                    'count' => $group->count(),
+                    'avg_viability' => round((float) ($viabilityReports->avg(fn (Iavic114PbmcReport $report) => (float) $report->viability_percent) ?? 0), 1),
+                    'avg_processing_minutes' => round((float) ($group->avg(fn (Iavic114PbmcReport $report) => $report->processing_to_freezing_minutes !== null ? (int) $report->processing_to_freezing_minutes : null) ?? 0)),
+                ];
+            })
+            ->sortByDesc('count')
+            ->take(5)
+            ->values();
+
+        $timelineGroups = $reports
+            ->filter(fn (Iavic114PbmcReport $report) => $report->report_date !== null)
+            ->groupBy(fn (Iavic114PbmcReport $report) => $report->report_date->format('Y-m'))
+            ->sortKeys()
+            ->take(-12);
+
+        $timelineLabels = [];
+        $timelineCounts = [];
+        $timelineAvgViability = [];
+
+        foreach ($timelineGroups as $month => $group) {
+            $timelineLabels[] = Carbon::createFromFormat('Y-m', $month)->format('M Y');
+            $timelineCounts[] = $group->count();
+            $timelineAvgViability[] = round((float) ($group->avg(fn (Iavic114PbmcReport $report) => $report->viability_percent !== null ? (float) $report->viability_percent : null) ?? 0), 1);
         }
 
-        // Counting method breakdown
-        $automatedCount = Pbmc::where('counting_method', 'Automated')->count();
-        $manualCountMethod = Pbmc::where('counting_method', 'Manual Count')->count();
+        $participantGroups = $reports
+            ->filter(fn (Iavic114PbmcReport $report) => filled($report->participant_id))
+            ->groupBy('participant_id')
+            ->map(function (Collection $group, string $participant): array {
+                return [
+                    'participant' => $participant,
+                    'count' => $group->count(),
+                    'avg_viability' => round((float) ($group->avg(fn (Iavic114PbmcReport $report) => $report->viability_percent !== null ? (float) $report->viability_percent : null) ?? 0), 1),
+                ];
+            })
+            ->sortByDesc('count')
+            ->take(5)
+            ->values();
 
-        // Study distribution
-        $studyData = Pbmc::select(
-            DB::raw('CASE WHEN study_choice = "Other" THEN COALESCE(other_study_name, "Other") ELSE study_choice END as study_name'),
-            DB::raw('COUNT(*) as count'),
-            DB::raw('AVG(COALESCE(viability_percent, auto_viability_percent)) as avg_viability')
-        )
-        ->groupBy('study_name')
-        ->orderByDesc('count')
-        ->get();
+        $completeRecords = $reports->filter(function (Iavic114PbmcReport $report): bool {
+            return filled($report->sample_id_visit_number)
+                && $report->report_date !== null
+                && $report->viability_percent !== null
+                && $report->sample_condition !== null
+                && $report->cryovials_frozen !== null
+                && $report->processing_to_freezing_minutes !== null
+                && $report->blood_draw_to_freezing_minutes !== null;
+        })->count();
 
-        $studyLabels = $studyData->pluck('study_name')->toArray();
-        $studyCounts = $studyData->pluck('count')->toArray();
-        
-        // Top 5 studies for leaderboard
-        $topStudies = $studyData->take(5);
+        $recent30Days = $reports->filter(function (Iavic114PbmcReport $report): bool {
+            return $report->report_date !== null && $report->report_date->gte(now()->subDays(30)->startOfDay());
+        })->count();
 
-        // Timeline data (last 12 months)
-        $timelineData = Pbmc::select(
-            DB::raw('DATE_FORMAT(collection_date, "%Y-%m") as month'),
-            DB::raw('COUNT(*) as count'),
-            DB::raw('SUM(CASE WHEN COALESCE(viability_percent, auto_viability_percent) >= 80 THEN 1 ELSE 0 END) as viable_count')
-        )
-        ->whereNotNull('collection_date')
-        ->where('collection_date', '>=', Carbon::now()->subMonths(12))
-        ->groupBy('month')
-        ->orderBy('month')
-        ->get();
-
-        $timelineLabels = $timelineData->pluck('month')->map(function($month) {
-            return Carbon::parse($month . '-01')->format('M Y');
-        })->toArray();
-        $timelineCounts = $timelineData->pluck('count')->toArray();
-        $timelineViable = $timelineData->pluck('viable_count')->toArray();
-
-        // Recent activity
-        $last7Days = Pbmc::where('created_at', '>=', Carbon::now()->subDays(7))->count();
-        $last30Days = Pbmc::where('created_at', '>=', Carbon::now()->subDays(30))->count();
-        $thisYear = Pbmc::whereYear('created_at', Carbon::now()->year)->count();
-
-        // Data quality metrics
-        $completeRecords = Pbmc::whereNotNull('ptid')
-            ->whereNotNull('collection_date')
-            ->whereNotNull('visit')
-            ->whereNotNull(DB::raw('COALESCE(viability_percent, auto_viability_percent)'))
-            ->count();
-        
-        $withComments = Pbmc::whereNotNull('auto_comment')
-            ->where('auto_comment', '!=', '')
-            ->count();
+        $thisYear = $reports->filter(function (Iavic114PbmcReport $report): bool {
+            return $report->report_date !== null && $report->report_date->year === now()->year;
+        })->count();
 
         return [
-            // Overview
             'total_records' => $totalRecords,
-            'acrn_count' => $acrnCount,
-            'manual_count' => $manualCount,
-            
-            // Viability
-            'avg_viability' => $avgViability,
-            'viability_high' => $viabilityHigh,
-            'viability_medium' => $viabilityMedium,
-            'viability_low' => $viabilityLow,
-            'viable_count' => $viableCount,
-            'viable_percentage' => $viablePercentage,
-            
-            // Cell counts
-            'total_cells' => $totalCells,
-            
-            // Methods
-            'automated_count' => $automatedCount,
-            'manual_count' => $manualCountMethod,
-            
-            // Studies
-            'study_labels' => $studyLabels,
-            'study_counts' => $studyCounts,
-            'top_studies' => $topStudies,
-            
-            // Timeline
+            'study_code' => 'IAVIC114',
+            'unique_participants' => $reports->pluck('participant_id')->filter()->unique()->count(),
+            'unique_visits' => $reports->pluck('visit_code')->filter()->unique()->count(),
+            'avg_viability' => round((float) ($reportsWithViability->avg(fn (Iavic114PbmcReport $report) => (float) $report->viability_percent) ?? 0), 1),
+            'avg_total_viable_cells' => round((float) ($reports->avg(fn (Iavic114PbmcReport $report) => $report->total_viable_cells_millions !== null ? (float) $report->total_viable_cells_millions : null) ?? 0), 2),
+            'avg_cryovials' => round((float) ($reports->avg(fn (Iavic114PbmcReport $report) => $report->cryovials_frozen !== null ? (int) $report->cryovials_frozen : null) ?? 0), 1),
+            'avg_processing_to_freezing' => round((float) ($reports->avg(fn (Iavic114PbmcReport $report) => $report->processing_to_freezing_minutes !== null ? (int) $report->processing_to_freezing_minutes : null) ?? 0)),
+            'avg_blood_draw_to_freezing' => round((float) ($reports->avg(fn (Iavic114PbmcReport $report) => $report->blood_draw_to_freezing_minutes !== null ? (int) $report->blood_draw_to_freezing_minutes : null) ?? 0)),
+            'pass_count' => $passingReports->count(),
+            'pass_rate' => $totalRecords > 0 ? round(($passingReports->count() / $totalRecords) * 100, 1) : 0,
+            'with_comments' => $reportsWithComments->count(),
+            'complete_records' => $completeRecords,
+            'last_30_days' => $recent30Days,
+            'this_year' => $thisYear,
+            'viability_high' => $highViability,
+            'viability_medium' => $mediumViability,
+            'viability_low' => $lowViability,
+            'condition_labels' => $conditionGroups->keys()->values()->all(),
+            'condition_counts' => $conditionGroups->values()->all(),
+            'visit_labels' => $visitGroups->keys()->values()->all(),
+            'visit_counts' => $visitGroups->values()->all(),
             'timeline_labels' => $timelineLabels,
             'timeline_counts' => $timelineCounts,
-            'timeline_viable' => $timelineViable,
-            
-            // Activity
-            'last_7_days' => $last7Days,
-            'last_30_days' => $last30Days,
-            'this_year' => $thisYear,
-            
-            // Quality
-            'complete_records' => $completeRecords,
-            'with_comments' => $withComments,
+            'timeline_avg_viability' => $timelineAvgViability,
+            'operator_performance' => $operatorPerformance->all(),
+            'participant_leaders' => $participantGroups->all(),
         ];
     }
 
     /**
-     * Get filtered analytics data (for AJAX requests)
+     * Get filtered analytics summary for lightweight refreshes.
      */
-    public function getFilteredData($filter = 'all')
+    public function getFilteredData(string $filter = 'all'): JsonResponse
     {
-        // Implementation for dynamic filtering
-        $query = Pbmc::query();
-        
-        switch ($filter) {
-            case 'week':
-                $query->where('created_at', '>=', Carbon::now()->subWeek());
-                break;
-            case 'month':
-                $query->where('created_at', '>=', Carbon::now()->subMonth());
-                break;
-            case '6m':
-                $query->where('created_at', '>=', Carbon::now()->subMonths(6));
-                break;
-            case '1y':
-                $query->where('created_at', '>=', Carbon::now()->subYear());
-                break;
-        }
-        
+        $stats = $this->getAnalyticsData($filter);
+
         return response()->json([
-            'total' => $query->count(),
-            'viable' => $query->where(function($q) {
-                $q->where('viability_percent', '>=', 80)
-                  ->orWhere('auto_viability_percent', '>=', 80);
-            })->count()
+            'total_records' => $stats['total_records'],
+            'avg_viability' => $stats['avg_viability'],
+            'pass_rate' => $stats['pass_rate'],
+            'last_30_days' => $stats['last_30_days'],
         ]);
+    }
+
+    private function applyFilter($query, ?string $filter): void
+    {
+        match ($filter) {
+            'week' => $query->whereDate('report_date', '>=', now()->subWeek()->toDateString()),
+            'month' => $query->whereDate('report_date', '>=', now()->subMonth()->toDateString()),
+            '6m' => $query->whereDate('report_date', '>=', now()->subMonths(6)->toDateString()),
+            '1y' => $query->whereDate('report_date', '>=', now()->subYear()->toDateString()),
+            default => null,
+        };
     }
 }

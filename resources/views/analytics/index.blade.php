@@ -6,18 +6,19 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
     :root {
-        --chart-primary: #f97316;
-        --chart-secondary: #0ea5e9;
-        --chart-success: #10b981;
-        --chart-warning: #f59e0b;
-        --chart-danger: #ef4444;
-        --chart-purple: #8b5cf6;
-        --chart-pink: #ec4899;
+        --chart-primary: #c2410c;
+        --chart-secondary: #0f766e;
+        --chart-accent: #1d4ed8;
+        --chart-success: #15803d;
+        --chart-warning: #d97706;
+        --chart-danger: #dc2626;
+        --chart-ink: #111827;
+        --chart-mist: #f8fafc;
     }
 
     .analytics-header {
         font-family: 'Playfair Display', serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #7c2d12 0%, #0f766e 55%, #1d4ed8 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -26,44 +27,37 @@
     .stat-card {
         position: relative;
         overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .stat-card::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, transparent 0%, rgba(249, 115, 22, 0.1) 100%);
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(194, 65, 12, 0.14), transparent 48%);
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.25s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 22px 40px -18px rgba(15, 23, 42, 0.25);
     }
 
     .stat-card:hover::before {
         opacity: 1;
     }
 
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    .chart-card {
+        background: linear-gradient(180deg, #ffffff 0%, #fffaf5 100%);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 1rem;
+        box-shadow: 0 20px 40px -30px rgba(15, 23, 42, 0.35);
     }
 
     .chart-container {
         position: relative;
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        animation: fadeInUp 0.55s ease-out;
     }
 
     .stat-number {
@@ -75,383 +69,323 @@
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 
-    @keyframes pulse {
-        0%, 100% {
+    .metric-bar {
+        background: linear-gradient(90deg, rgba(194, 65, 12, 0.12), rgba(15, 118, 110, 0.12));
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+        to {
             opacity: 1;
-        }
-        50% {
-            opacity: .5;
+            transform: translateY(0);
         }
     }
 
-    .shimmer {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite;
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
     }
 
-    @keyframes shimmer {
-        0% {
-            background-position: 200% 0;
-        }
-        100% {
-            background-position: -200% 0;
-        }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
 
-    .gradient-border {
-        position: relative;
-        background: white;
-        padding: 1px;
-        border-radius: 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f97316 100%);
-    }
-
-    .gradient-border-inner {
-        background: white;
-        border-radius: calc(1rem - 1px);
-    }
-
-    /* Custom scrollbar for charts */
-    .chart-scroll::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .chart-scroll::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-
-    .chart-scroll::-webkit-scrollbar-thumb {
-        background: var(--chart-primary);
-        border-radius: 10px;
-    }
-
-    .chart-scroll::-webkit-scrollbar-thumb:hover {
-        background: #ea580c;
-    }
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.16s; }
+    .delay-4 { animation-delay: 0.20s; }
+    .delay-5 { animation-delay: 0.24s; }
+    .delay-6 { animation-delay: 0.28s; }
 </style>
 @endpush
 
 @section('content')
-@php
-    $user = Auth::user();
-@endphp
-
 <div class="max-w-7xl mx-auto">
+    <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-sm uppercase tracking-[0.25em] text-orange-700 font-semibold mb-2">{{ $stats['study_code'] }} dataset</p>
+            <h1 class="text-4xl font-black analytics-header mb-2">PBMC Analytics Dashboard</h1>
+            <p class="text-gray-600 flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span>
+                Imported IAVIC114 processing performance, turnaround, and quality trends
+            </p>
+        </div>
 
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-4xl font-black analytics-header mb-2">
-                    Analytics Dashboard
-                </h1>
-                <p class="text-gray-600 flex items-center gap-2">
-                    <span class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span>
-                    Real-time PBMC processing insights
-                </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="refreshData()" 
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
-                    <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                    Refresh
-                </button>
-                <a href="{{ route('pbmc.index') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-pbmc text-white rounded-lg hover:bg-orange-700 transition-all">
-                    <i data-feather="list" class="w-4 h-4"></i>
-                    View Records
-                </a>
-            </div>
+        <div class="flex items-center gap-3">
+            <button type="button"
+                    onclick="refreshData(this)"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                Refresh
+            </button>
+            <a href="{{ route('dashboard') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-pbmc text-white rounded-lg hover:bg-orange-700 transition-all">
+                <i data-feather="grid" class="w-4 h-4"></i>
+                Dashboard
+            </a>
         </div>
     </div>
 
-    <!-- Key Metrics Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        
-        <!-- Total Records -->
-        <div class="stat-card bg-white rounded-xl border p-6">
-            <div class="flex items-start justify-between mb-4">
-                <div class="p-3 bg-blue-50 rounded-lg">
-                    <i data-feather="database" class="w-6 h-6 text-blue-600"></i>
-                </div>
-                <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">ALL TIME</span>
-            </div>
-            <div class="stat-number text-3xl font-bold text-gray-900 mb-1">
-                {{ number_format($stats['total_records']) }}
-            </div>
-            <p class="text-sm text-gray-600">Total PBMC Records</p>
-            <div class="mt-3 flex items-center gap-2 text-xs">
-                <span class="text-green-600 font-semibold">↑ {{ $stats['acrn_count'] }}</span>
-                <span class="text-gray-500">from ACRN</span>
-            </div>
-        </div>
-
-        <!-- Average Viability -->
-        <div class="stat-card bg-white rounded-xl border p-6">
-            <div class="flex items-start justify-between mb-4">
-                <div class="p-3 bg-green-50 rounded-lg">
-                    <i data-feather="activity" class="w-6 h-6 text-green-600"></i>
-                </div>
-                <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">AVERAGE</span>
-            </div>
-            <div class="stat-number text-3xl font-bold text-gray-900 mb-1">
-                {{ number_format($stats['avg_viability'], 1) }}%
-            </div>
-            <p class="text-sm text-gray-600">Average Viability</p>
-            <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-1000" 
-                     style="width: {{ $stats['avg_viability'] }}%"></div>
-            </div>
-        </div>
-
-        <!-- Total Cell Count -->
-        <div class="stat-card bg-white rounded-xl border p-6">
-            <div class="flex items-start justify-between mb-4">
-                <div class="p-3 bg-purple-50 rounded-lg">
-                    <i data-feather="hexagon" class="w-6 h-6 text-purple-600"></i>
-                </div>
-                <span class="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">TOTAL</span>
-            </div>
-            <div class="stat-number text-3xl font-bold text-gray-900 mb-1">
-                {{ number_format($stats['total_cells'] / 1000000, 1) }}M
-            </div>
-            <p class="text-sm text-gray-600">Total Cells Processed</p>
-            <div class="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                <i data-feather="trending-up" class="w-3 h-3"></i>
-                {{ number_format($stats['total_cells']) }} cells
-            </div>
-        </div>
-
-        <!-- Success Rate -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <div class="stat-card bg-white rounded-xl border p-6">
             <div class="flex items-start justify-between mb-4">
                 <div class="p-3 bg-orange-50 rounded-lg">
-                    <i data-feather="check-circle" class="w-6 h-6 text-orange-600"></i>
+                    <i data-feather="database" class="w-6 h-6 text-orange-700"></i>
                 </div>
-                <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">≥80%</span>
+                <span class="text-xs font-semibold text-orange-700 bg-orange-50 px-2 py-1 rounded-full">REPORTS</span>
             </div>
-            <div class="stat-number text-3xl font-bold text-gray-900 mb-1">
-                {{ number_format($stats['viable_percentage'], 1) }}%
-            </div>
-            <p class="text-sm text-gray-600">High Viability Rate</p>
-            <div class="mt-3 flex items-center gap-2 text-xs">
-                <span class="text-orange-600 font-semibold">{{ $stats['viable_count'] }}/{{ $stats['total_records'] }}</span>
-                <span class="text-gray-500">samples</span>
+            <div class="stat-number text-3xl text-gray-900 mb-1">{{ number_format($stats['total_records']) }}</div>
+            <p class="text-sm text-gray-600">Imported PBMC records</p>
+            <div class="mt-3 text-xs text-gray-500">
+                {{ number_format($stats['unique_participants']) }} participants across {{ number_format($stats['unique_visits']) }} visit codes
             </div>
         </div>
 
+        <div class="stat-card bg-white rounded-xl border p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div class="p-3 bg-green-50 rounded-lg">
+                    <i data-feather="activity" class="w-6 h-6 text-green-700"></i>
+                </div>
+                <span class="text-xs font-semibold text-green-700 bg-green-50 px-2 py-1 rounded-full">VIABILITY</span>
+            </div>
+            <div class="stat-number text-3xl text-gray-900 mb-1">{{ number_format($stats['avg_viability'], 1) }}%</div>
+            <p class="text-sm text-gray-600">Average viability percent</p>
+            <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-green-500 to-emerald-700 h-2 rounded-full" style="width: {{ min(max($stats['avg_viability'], 0), 100) }}%"></div>
+            </div>
+        </div>
+
+        <div class="stat-card bg-white rounded-xl border p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <i data-feather="check-circle" class="w-6 h-6 text-blue-700"></i>
+                </div>
+                <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded-full">PASS</span>
+            </div>
+            <div class="stat-number text-3xl text-gray-900 mb-1">{{ number_format($stats['pass_rate'], 1) }}%</div>
+            <p class="text-sm text-gray-600">Samples marked as pass</p>
+            <div class="mt-3 text-xs text-gray-500">{{ $stats['pass_count'] }} of {{ $stats['total_records'] }} reports</div>
+        </div>
+
+        <div class="stat-card bg-white rounded-xl border p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div class="p-3 bg-teal-50 rounded-lg">
+                    <i data-feather="clock" class="w-6 h-6 text-teal-700"></i>
+                </div>
+                <span class="text-xs font-semibold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">TURNAROUND</span>
+            </div>
+            <div class="stat-number text-3xl text-gray-900 mb-1">{{ number_format($stats['avg_blood_draw_to_freezing']) }}</div>
+            <p class="text-sm text-gray-600">Avg blood draw to freezing minutes</p>
+            <div class="mt-3 text-xs text-gray-500">Processing to freezing avg: {{ number_format($stats['avg_processing_to_freezing']) }} min</div>
+        </div>
     </div>
 
-    <!-- Charts Row 1 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        
-        <!-- Viability Distribution -->
-        <div class="gradient-border">
-            <div class="gradient-border-inner bg-white rounded-xl p-6 chart-container">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-gray-900">Viability Distribution</h3>
-                    <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
-                        High (≥80%)
-                        <span class="w-3 h-3 rounded-full bg-orange-500 ml-2"></span>
-                        Medium (60-79%)
-                        <span class="w-3 h-3 rounded-full bg-red-500 ml-2"></span>
-                        Low (<60%)
-                    </div>
-                </div>
-                <div class="h-64">
-                    <canvas id="viabilityChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Processing Methods -->
-        <div class="gradient-border">
-            <div class="gradient-border-inner bg-white rounded-xl p-6 chart-container" style="animation-delay: 0.1s">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-gray-900">Counting Methods</h3>
-                    <select id="methodFilter" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-pbmc focus:border-transparent">
-                        <option value="all">All Time</option>
-                        <option value="month">This Month</option>
-                        <option value="week">This Week</option>
-                    </select>
-                </div>
-                <div class="h-64">
-                    <canvas id="methodChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Charts Row 2 -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        
-        <!-- Study Distribution -->
-        <div class="gradient-border lg:col-span-2">
-            <div class="gradient-border-inner bg-white rounded-xl p-6 chart-container" style="animation-delay: 0.2s">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-gray-900">Records by Study</h3>
-                    <i data-feather="bar-chart-2" class="w-5 h-5 text-gray-400"></i>
-                </div>
-                <div class="h-80 chart-scroll overflow-x-auto">
-                    <canvas id="studyChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Performers -->
-        <div class="gradient-border">
-            <div class="gradient-border-inner bg-white rounded-xl p-6 chart-container" style="animation-delay: 0.3s">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-gray-900">Top Studies</h3>
-                    <i data-feather="award" class="w-5 h-5 text-yellow-500"></i>
-                </div>
-                <div class="space-y-4">
-                    @foreach($stats['top_studies'] as $index => $study)
-                        <div class="flex items-center gap-3">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                                {{ $index === 0 ? 'bg-yellow-100 text-yellow-700' : ($index === 1 ? 'bg-gray-100 text-gray-700' : 'bg-orange-100 text-orange-700') }}">
-                                {{ $index + 1 }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-gray-900 truncate">{{ $study->study_name }}</p>
-                                <p class="text-xs text-gray-500">{{ $study->count }} records</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-bold text-green-600">{{ number_format($study->avg_viability, 1) }}%</p>
-                                <p class="text-xs text-gray-500">avg viability</p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Timeline Chart -->
-    <div class="gradient-border mb-6">
-        <div class="gradient-border-inner bg-white rounded-xl p-6 chart-container" style="animation-delay: 0.4s">
+        <div class="chart-card p-6 chart-container lg:col-span-1">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-900">Processing Timeline</h3>
-                    <p class="text-sm text-gray-500">Monthly PBMC processing volume</p>
+                    <h3 class="text-lg font-bold text-gray-900">Viability Bands</h3>
+                    <p class="text-sm text-gray-500">High, medium, and low viability spread</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="changeTimelineView('6m')" class="timeline-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-all">6M</button>
-                    <button onclick="changeTimelineView('1y')" class="timeline-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-all active">1Y</button>
-                    <button onclick="changeTimelineView('all')" class="timeline-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-all">All</button>
-                </div>
+                <i data-feather="pie-chart" class="w-5 h-5 text-gray-400"></i>
             </div>
-            <div class="h-96">
+            <div class="h-72">
+                <canvas id="viabilityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card p-6 chart-container lg:col-span-2" class="delay-1">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Monthly Throughput</h3>
+                    <p class="text-sm text-gray-500">Last 12 report months with record count and average viability</p>
+                </div>
+                <i data-feather="trending-up" class="w-5 h-5 text-gray-400"></i>
+            </div>
+            <div class="h-72">
                 <canvas id="timelineChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Additional Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Automated vs Manual -->
-        <div class="bg-white rounded-xl border p-6">
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Processing Split</h4>
-            <div class="space-y-3">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="chart-card p-6 chart-container" class="delay-2">
+            <div class="flex items-center justify-between mb-6">
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs text-gray-600">Automated</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $stats['automated_count'] }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full transition-all duration-1000" 
-                             style="width: {{ ($stats['automated_count'] / max($stats['total_records'], 1)) * 100 }}%"></div>
-                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Sample Condition Mix</h3>
+                    <p class="text-sm text-gray-500">How imported samples are classified</p>
                 </div>
+                <i data-feather="shield" class="w-5 h-5 text-gray-400"></i>
+            </div>
+            <div class="h-80">
+                <canvas id="conditionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card p-6 chart-container" class="delay-3">
+            <div class="flex items-center justify-between mb-6">
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs text-gray-600">Manual Count</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $stats['manual_count'] }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-purple-500 h-2 rounded-full transition-all duration-1000" 
-                             style="width: {{ ($stats['manual_count'] / max($stats['total_records'], 1)) * 100 }}%"></div>
-                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Visit Distribution</h3>
+                    <p class="text-sm text-gray-500">Top visit codes represented in imported reports</p>
                 </div>
+                <i data-feather="bar-chart-2" class="w-5 h-5 text-gray-400"></i>
+            </div>
+            <div class="h-80">
+                <canvas id="visitChart"></canvas>
             </div>
         </div>
-
-        <!-- Recent Activity -->
-        <div class="bg-white rounded-xl border p-6">
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Recent Activity</h4>
-            <div class="space-y-3">
-                <div class="flex items-center gap-2 text-xs">
-                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span class="text-gray-600">Last 7 days:</span>
-                    <span class="font-bold text-gray-900">{{ $stats['last_7_days'] }} records</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span class="text-gray-600">Last 30 days:</span>
-                    <span class="font-bold text-gray-900">{{ $stats['last_30_days'] }} records</span>
-                </div>
-                <div class="flex items-center gap-2 text-xs">
-                    <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <span class="text-gray-600">This year:</span>
-                    <span class="font-bold text-gray-900">{{ $stats['this_year'] }} records</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Data Quality -->
-        <div class="bg-white rounded-xl border p-6">
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Data Quality</h4>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600">Complete Records</span>
-                    <span class="text-xs font-bold text-green-600">{{ number_format(($stats['complete_records'] / max($stats['total_records'], 1)) * 100, 1) }}%</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600">With Comments</span>
-                    <span class="text-xs font-bold text-blue-600">{{ number_format(($stats['with_comments'] / max($stats['total_records'], 1)) * 100, 1) }}%</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-600">High Quality</span>
-                    <span class="text-xs font-bold text-purple-600">{{ number_format(($stats['viable_count'] / max($stats['total_records'], 1)) * 100, 1) }}%</span>
-                </div>
-            </div>
-        </div>
-
     </div>
 
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="chart-card p-6 chart-container lg:col-span-1" class="delay-4">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Core KPIs</h3>
+                    <p class="text-sm text-gray-500">Operational and data quality checkpoints</p>
+                </div>
+                <i data-feather="target" class="w-5 h-5 text-gray-400"></i>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <div class="flex items-center justify-between text-sm mb-2">
+                        <span class="text-gray-600">Complete records</span>
+                        <span class="font-bold text-gray-900">{{ number_format($stats['complete_records']) }}</span>
+                    </div>
+                    <div class="metric-bar rounded-full h-2 overflow-hidden">
+                        <div class="bg-green-600 h-2 rounded-full" style="width: {{ $stats['total_records'] > 0 ? ($stats['complete_records'] / $stats['total_records']) * 100 : 0 }}%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between text-sm mb-2">
+                        <span class="text-gray-600">Reports with comments</span>
+                        <span class="font-bold text-gray-900">{{ number_format($stats['with_comments']) }}</span>
+                    </div>
+                    <div class="metric-bar rounded-full h-2 overflow-hidden">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $stats['total_records'] > 0 ? ($stats['with_comments'] / $stats['total_records']) * 100 : 0 }}%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-1">
+                    <div class="rounded-xl bg-orange-50 p-4">
+                        <p class="text-xs uppercase tracking-wide text-orange-700 font-semibold">Avg viable cells</p>
+                        <p class="stat-number text-2xl text-gray-900 mt-2">{{ number_format($stats['avg_total_viable_cells'], 2) }}</p>
+                        <p class="text-xs text-gray-500 mt-1">million</p>
+                    </div>
+                    <div class="rounded-xl bg-teal-50 p-4">
+                        <p class="text-xs uppercase tracking-wide text-teal-700 font-semibold">Avg cryovials</p>
+                        <p class="stat-number text-2xl text-gray-900 mt-2">{{ number_format($stats['avg_cryovials'], 1) }}</p>
+                        <p class="text-xs text-gray-500 mt-1">per report</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="rounded-xl border border-gray-200 p-4">
+                        <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Last 30 days</p>
+                        <p class="stat-number text-2xl text-gray-900 mt-2">{{ number_format($stats['last_30_days']) }}</p>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 p-4">
+                        <p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">This year</p>
+                        <p class="stat-number text-2xl text-gray-900 mt-2">{{ number_format($stats['this_year']) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-card p-6 chart-container lg:col-span-1" class="delay-5">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Operator Snapshot</h3>
+                    <p class="text-sm text-gray-500">Top operators by imported report volume</p>
+                </div>
+                <i data-feather="users" class="w-5 h-5 text-gray-400"></i>
+            </div>
+
+            <div class="space-y-4">
+                @forelse($stats['operator_performance'] as $operator)
+                    <div class="rounded-xl border border-gray-200 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ $operator['operator'] }}</p>
+                                <p class="text-xs text-gray-500">{{ $operator['count'] }} reports</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-green-700">{{ number_format($operator['avg_viability'], 1) }}%</p>
+                                <p class="text-xs text-gray-500">avg viability</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-xs text-gray-500">Avg processing to freezing: {{ number_format($operator['avg_processing_minutes']) }} min</div>
+                    </div>
+                @empty
+                    <div class="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
+                        No operator initials are available in the imported reports yet.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        <div class="chart-card p-6 chart-container lg:col-span-1" class="delay-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Participant Leaders</h3>
+                    <p class="text-sm text-gray-500">Participants with the most imported reports</p>
+                </div>
+                <i data-feather="award" class="w-5 h-5 text-gray-400"></i>
+            </div>
+
+            <div class="space-y-4">
+                @forelse($stats['participant_leaders'] as $participant)
+                    <div class="rounded-xl bg-slate-50 p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ $participant['participant'] }}</p>
+                                <p class="text-xs text-gray-500">{{ $participant['count'] }} reports</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-orange-700">{{ number_format($participant['avg_viability'], 1) }}%</p>
+                                <p class="text-xs text-gray-500">avg viability</p>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
+                        Participant identifiers have not been populated yet.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Chart.js default configuration
     Chart.defaults.font.family = "'JetBrains Mono', monospace";
     Chart.defaults.color = '#6b7280';
 
-    // Viability Distribution Chart
-    const viabilityCtx = document.getElementById('viabilityChart').getContext('2d');
-    const viabilityChart = new Chart(viabilityCtx, {
+    const viabilityBands = @json([$stats['viability_high'], $stats['viability_medium'], $stats['viability_low']]);
+
+    const conditionLabels = @json($stats['condition_labels']);
+    const conditionCounts = @json($stats['condition_counts']);
+    const visitLabels = @json($stats['visit_labels']);
+    const visitCounts = @json($stats['visit_counts']);
+    const timelineLabels = @json($stats['timeline_labels']);
+    const timelineCounts = @json($stats['timeline_counts']);
+    const timelineAvgViability = @json($stats['timeline_avg_viability']);
+
+    new Chart(document.getElementById('viabilityChart'), {
         type: 'doughnut',
         data: {
-            labels: ['High (≥80%)', 'Medium (60-79%)', 'Low (<60%)'],
+            labels: ['High (>=80%)', 'Medium (60-79%)', 'Low (<60%)'],
             datasets: [{
-                data: [
-                    {{ $stats['viability_high'] }},
-                    {{ $stats['viability_medium'] }},
-                    {{ $stats['viability_low'] }}
-                ],
-                backgroundColor: [
-                    '#10b981',
-                    '#f97316',
-                    '#ef4444'
-                ],
+                data: viabilityBands,
+                backgroundColor: ['#15803d', '#d97706', '#dc2626'],
                 borderWidth: 0,
                 hoverOffset: 10
             }]
@@ -461,91 +395,59 @@
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    titleFont: { size: 14, weight: 'bold' },
-                    bodyFont: { size: 13 },
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed / total) * 100).toFixed(1);
-                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                        }
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 18
                     }
                 }
-            },
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 1000
             }
         }
     });
 
-    // Processing Methods Chart
-    const methodCtx = document.getElementById('methodChart').getContext('2d');
-    const methodChart = new Chart(methodCtx, {
+    new Chart(document.getElementById('conditionChart'), {
         type: 'bar',
         data: {
-            labels: ['Automated', 'Manual Count'],
+            labels: conditionLabels,
             datasets: [{
-                label: 'Records',
-                data: [{{ $stats['automated_count'] }}, {{ $stats['manual_count'] }}],
-                backgroundColor: [
-                    'rgba(14, 165, 233, 0.8)',
-                    'rgba(139, 92, 246, 0.8)'
-                ],
-                borderColor: [
-                    '#0ea5e9',
-                    '#8b5cf6'
-                ],
-                borderWidth: 2,
-                borderRadius: 8
+                label: 'Reports',
+                data: conditionCounts,
+                backgroundColor: ['#0f766e', '#c2410c', '#1d4ed8', '#64748b', '#15803d', '#dc2626'],
+                borderRadius: 8,
+                borderSkipped: false
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12
-                }
+                legend: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: { precision: 0 }
+                    ticks: { precision: 0 },
+                    grid: { color: 'rgba(15, 23, 42, 0.06)' }
                 },
                 x: {
                     grid: { display: false }
                 }
-            },
-            animation: {
-                duration: 1000,
-                easing: 'easeOutQuart'
             }
         }
     });
 
-    // Study Distribution Chart
-    const studyCtx = document.getElementById('studyChart').getContext('2d');
-    const studyChart = new Chart(studyCtx, {
+    new Chart(document.getElementById('visitChart'), {
         type: 'bar',
         data: {
-            labels: {!! json_encode($stats['study_labels']) !!},
+            labels: visitLabels,
             datasets: [{
-                label: 'Records',
-                data: {!! json_encode($stats['study_counts']) !!},
-                backgroundColor: 'rgba(249, 115, 22, 0.8)',
-                borderColor: '#f97316',
-                borderWidth: 2,
-                borderRadius: 6
+                label: 'Reports',
+                data: visitCounts,
+                backgroundColor: 'rgba(29, 78, 216, 0.82)',
+                borderColor: '#1d4ed8',
+                borderWidth: 1.5,
+                borderRadius: 8,
+                borderSkipped: false
             }]
         },
         options: {
@@ -553,59 +455,44 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12
-                }
+                legend: { display: false }
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: { precision: 0 }
+                    ticks: { precision: 0 },
+                    grid: { color: 'rgba(15, 23, 42, 0.06)' }
                 },
                 y: {
                     grid: { display: false }
                 }
-            },
-            animation: {
-                duration: 1200,
-                easing: 'easeOutQuart'
             }
         }
     });
 
-    // Timeline Chart
-    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
-    const timelineChart = new Chart(timelineCtx, {
-        type: 'line',
+    new Chart(document.getElementById('timelineChart'), {
+        type: 'bar',
         data: {
-            labels: {!! json_encode($stats['timeline_labels']) !!},
+            labels: timelineLabels,
             datasets: [
                 {
-                    label: 'Total Records',
-                    data: {!! json_encode($stats['timeline_counts']) !!},
-                    borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#f97316'
+                    type: 'bar',
+                    label: 'Reports',
+                    data: timelineCounts,
+                    backgroundColor: 'rgba(194, 65, 12, 0.78)',
+                    borderRadius: 8,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'High Viability',
-                    data: {!! json_encode($stats['timeline_viable']) !!},
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
+                    type: 'line',
+                    label: 'Avg viability %',
+                    data: timelineAvgViability,
+                    borderColor: '#0f766e',
+                    backgroundColor: 'rgba(15, 118, 110, 0.12)',
+                    pointBackgroundColor: '#0f766e',
                     pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#10b981'
+                    tension: 0.35,
+                    yAxisID: 'y1'
                 }
             ]
         },
@@ -618,70 +505,48 @@
             },
             plugins: {
                 legend: {
-                    display: true,
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        padding: 20
+                        padding: 18
                     }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    titleFont: { size: 14, weight: 'bold' },
-                    bodyFont: { size: 13 }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                    ticks: { precision: 0 }
+                    ticks: { precision: 0 },
+                    grid: { color: 'rgba(15, 23, 42, 0.06)' },
+                    title: {
+                        display: true,
+                        text: 'Reports'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    max: 100,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    title: {
+                        display: true,
+                        text: 'Viability %'
+                    }
                 },
                 x: {
                     grid: { display: false }
                 }
-            },
-            animation: {
-                duration: 1500,
-                easing: 'easeInOutQuart'
             }
         }
     });
 
-    // Timeline view buttons
-    document.querySelectorAll('.timeline-btn').forEach(btn => {
-        btn.classList.add('bg-gray-100', 'text-gray-600');
-        if (btn.classList.contains('active')) {
-            btn.classList.remove('bg-gray-100', 'text-gray-600');
-            btn.classList.add('bg-pbmc', 'text-white');
-        }
-    });
-
-    function changeTimelineView(period) {
-        document.querySelectorAll('.timeline-btn').forEach(btn => {
-            btn.classList.remove('bg-pbmc', 'text-white', 'active');
-            btn.classList.add('bg-gray-100', 'text-gray-600');
-        });
-        event.target.classList.remove('bg-gray-100', 'text-gray-600');
-        event.target.classList.add('bg-pbmc', 'text-white', 'active');
-        
-        // Reload data for the selected period
-        console.log('Loading timeline data for:', period);
-    }
-
-    function refreshData() {
-        const icon = event.target.querySelector('i') || event.target.parentElement.querySelector('i');
+    function refreshData(button) {
+        const icon = button.querySelector('i');
         icon.style.animation = 'spin 1s linear';
-        setTimeout(() => {
+
+        window.setTimeout(() => {
             icon.style.animation = '';
             window.location.reload();
-        }, 1000);
-    }
-
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+        }, 700);
     }
 </script>
 @endpush

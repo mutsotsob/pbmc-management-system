@@ -56,14 +56,11 @@
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Remember me -->
-        <div class="flex items-center justify-between">
-            <label for="remember_me" class="inline-flex items-center">
-                
-
-            </label>
-
-            
+        <div class="flex items-center justify-end">
+            <a href="{{ route('password.request') }}"
+               class="text-sm text-gray-500 hover:text-orange-500 transition-colors">
+                Forgot your password?
+            </a>
         </div>
 
         <!-- Submit -->
