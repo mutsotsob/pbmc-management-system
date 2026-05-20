@@ -40,6 +40,8 @@ class DashboardController extends Controller
             ->paginate(15, ['*'], 'reports_page')
             ->withQueryString();
 
+        $isAdmin = auth()->user()?->isAdmin() ?? false;
+
         return view('dashboard', compact(
             'pbmcs',
             'sort',
@@ -49,6 +51,7 @@ class DashboardController extends Controller
             'reportDir',
             'reportSampleId',
             'reportOperator',
+            'isAdmin',
         ));
     }
 }
