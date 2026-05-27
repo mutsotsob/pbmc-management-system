@@ -4,6 +4,7 @@ return [
     'studies' => [
         'C114',
         'Probiotics',
+        'Preclamsia',
     ],
 
     'origins' => [

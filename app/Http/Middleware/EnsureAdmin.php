@@ -10,8 +10,10 @@ class EnsureAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user()?->isAdmin()) {
-            abort(403, 'Administrator access required.');
+        if (!$request->user()?->hasFullSystemAccess()) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Administrator access is required for that action.');
         }
 
         return $next($request);

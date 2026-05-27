@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Driver;
+use App\Models\SampleDispatchItem;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SampleDispatch extends Model
@@ -17,8 +19,10 @@ class SampleDispatch extends Model
         'dispatch_time',
         'sample_id',
         'study',
+        'visit',
         'origin_location',
         'quantity',
+        'no_of_bags',
         'destination',
         'driver_user_id',
         'driver_name',
@@ -35,6 +39,7 @@ class SampleDispatch extends Model
 
     protected $casts = [
         'dispatch_date' => 'date',
+        'no_of_bags'    => 'integer',
         'received_at'   => 'datetime',
     ];
 
@@ -53,7 +58,12 @@ class SampleDispatch extends Model
 
     public function driverUser(): BelongsTo
     {
-        return $this->belongsTo(Driver::class, 'driver_user_id');
+        return $this->belongsTo(User::class, 'driver_user_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(SampleDispatchItem::class, 'sample_dispatch_id');
     }
 
     public function dispatchedBy(): BelongsTo

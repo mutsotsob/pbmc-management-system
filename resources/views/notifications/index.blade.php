@@ -34,6 +34,7 @@
                     'password_changed' => ['icon' => 'lock',       'color' => 'text-yellow-500 bg-yellow-50'],
                     'sync_completed'   => ['icon' => 'refresh-cw', 'color' => 'text-teal-500   bg-teal-50'],
                     'report_imported'  => ['icon' => 'file-text',  'color' => 'text-indigo-500 bg-indigo-50'],
+                    'sample_rejected'  => ['icon' => 'x-circle',   'color' => 'text-red-500    bg-red-50'],
                 ];
                 $type   = $data['type'] ?? 'info';
                 $icon   = $iconMap[$type]['icon']  ?? 'bell';

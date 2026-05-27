@@ -26,6 +26,7 @@ class User extends Authenticatable
         'department',
         'job_title',
         'phone_number',
+        'profile_photo_path',
         'user_type',
         'user_status',
     ];
@@ -59,6 +60,41 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return strtolower(trim((string) $this->user_type)) === 'admin';
+    }
+
+    public function hasFullSystemAccess(): bool
+    {
+        return $this->isAdmin() || $this->hasFullAccessDepartment();
+    }
+
+    public function hasFullAccessDepartment(): bool
+    {
+        return in_array($this->normalizedDepartment(), [
+            'ceosoffice',
+            'itanddatasystems',
+        ], true);
+    }
+
+    public function isDepartment(string $department): bool
+    {
+        return $this->normalizedDepartment() === $this->normalizeDepartment($department);
+    }
+
+    private function normalizedDepartment(): string
+    {
+        return $this->normalizeDepartment((string) $this->department);
+    }
+
+    private function normalizeDepartment(string $department): string
+    {
+        return preg_replace('/[^a-z0-9]+/', '', strtolower(trim($department))) ?? '';
+    }
+
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return $this->profile_photo_path
+            ? asset('storage/' . $this->profile_photo_path)
+            : null;
     }
 
     public function sendPasswordResetNotification($token): void

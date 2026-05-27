@@ -27,7 +27,7 @@
 
     <div class="header">
         <h1>Password Reset Request</h1>
-        <p>PBMC Processing Portal</p>
+        <p>Samples Management System</p>
     </div>
 
     <div class="body">
@@ -62,7 +62,7 @@
     </div>
 
     <div class="footer">
-        This is an automated notification from the PBMC Processing Portal.<br>
+        This is an automated notification from the Samples Management System.<br>
         Please do not reply to this email.
     </div>
 

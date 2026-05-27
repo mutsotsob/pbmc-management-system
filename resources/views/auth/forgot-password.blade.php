@@ -10,8 +10,6 @@
         Enter your email address and we'll send you a link to reset your password.
     </p>
 
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
     <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
         @csrf
 

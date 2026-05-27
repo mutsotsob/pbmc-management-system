@@ -59,6 +59,12 @@
                     <div class="value">{{ $dispatch->quantity ?? 1 }}</div>
                 </div>
                 <div class="cell">
+                    <div class="label">No. of bags</div>
+                    <div class="value">{{ $dispatch->no_of_bags ?? '-' }}</div>
+                </div>
+            </div>
+            <div class="grid" style="margin-top:12px;">
+                <div class="cell">
                     <div class="label">Route</div>
                     <div class="value">
                         {{ $dispatch->origin_location }}
@@ -118,7 +124,7 @@
     </div>
 
     <div class="footer">
-        This is an automated notification from the PBMC Processing Portal.<br>
+        This is an automated notification from the Samples Management System.<br>
         Please do not reply to this email.
     </div>
 
