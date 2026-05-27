@@ -23,30 +23,47 @@ class SendDispatchNotificationEmail implements ShouldQueue
 
     public function handle(MicrosoftGraphMailer $mailer): void
     {
-        $recipients = User::where('department', 'Laboratory')
+        $this->dispatch->loadMissing(['items', 'dispatchedBy', 'driverUser']);
+
+        $labRecipients = User::query()
+            ->where('department', 'Laboratory')
             ->where('user_status', true)
             ->whereNotNull('email')
             ->pluck('email')
             ->toArray();
 
-        if (empty($recipients)) {
-            Log::info('SendDispatchNotificationEmail: no active Laboratory users found, skipping.');
-            return;
+        if (!empty($labRecipients)) {
+            $labHtml = view('emails.sample-dispatched', [
+                'dispatch' => $this->dispatch,
+                'recipientType' => 'lab',
+            ])->render();
+
+            $mailer->send(
+                $labRecipients,
+                "Sample Dispatched - {$this->dispatch->reference}",
+                $labHtml
+            );
         }
 
-        $this->dispatch->loadMissing(['dispatchedBy', 'driverUser']);
+        $driverEmail = $this->dispatch->driverUser?->email;
 
-        $html = view('emails.sample-dispatched', ['dispatch' => $this->dispatch])->render();
+        if (!empty($driverEmail)) {
+            $driverHtml = view('emails.sample-dispatched', [
+                'dispatch' => $this->dispatch,
+                'recipientType' => 'driver',
+            ])->render();
 
-        $mailer->send(
-            $recipients,
-            "Sample Dispatched – {$this->dispatch->reference}",
-            $html
-        );
+            $mailer->send(
+                [$driverEmail],
+                "Dispatch Assignment - {$this->dispatch->reference}",
+                $driverHtml
+            );
+        }
 
         Log::info('Dispatch notification sent', [
-            'reference'  => $this->dispatch->reference,
-            'recipients' => $recipients,
+            'reference' => $this->dispatch->reference,
+            'lab_recipients' => $labRecipients,
+            'driver_recipient' => $driverEmail,
         ]);
     }
 
@@ -54,7 +71,7 @@ class SendDispatchNotificationEmail implements ShouldQueue
     {
         Log::error('SendDispatchNotificationEmail failed', [
             'reference' => $this->dispatch->reference,
-            'error'     => $e->getMessage(),
+            'error' => $e->getMessage(),
         ]);
     }
 }

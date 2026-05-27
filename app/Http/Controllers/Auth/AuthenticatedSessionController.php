@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,11 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
+        AuditLog::record('login', $user, [], [
+            'message' => 'User signed in.',
+            'session_id' => $request->session()->getId(),
+        ]);
+
         $home = (!$user->isAdmin() && $user->department === 'Clinical Operations')
             ? route('sample-dispatches.index', absolute: false)
             : route('dashboard', absolute: false);
@@ -44,6 +50,15 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user) {
+            AuditLog::record('logout', $user, [], [
+                'message' => 'User signed out.',
+                'session_id' => $request->session()->getId(),
+            ]);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

@@ -9,6 +9,7 @@ use App\Models\AuditLog;
 use App\Models\SampleDispatch;
 use App\Models\User;
 use App\Notifications\SampleDispatchRejectedNotification;
+use App\Services\SampleDispatchWorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -214,15 +215,9 @@ class SampleDispatchController extends Controller
         ]);
     }
 
-    public function receive(Request $request, SampleDispatch $sampleDispatch)
+    public function receive(Request $request, SampleDispatch $sampleDispatch, SampleDispatchWorkflowService $workflow)
     {
-        if (!$this->canReceiveSamples($request->user())) {
-            return back()->with('error', 'Only Laboratory staff may receive samples.');
-        }
-
-        if ($sampleDispatch->isReceived()) {
-            return back()->with('error', 'This sample has already been marked as received.');
-        }
+        $this->authorize('receive', $sampleDispatch);
 
         $validated = $request->validate([
             'condition_on_arrival' => ['required', 'in:Good,Compromised,Rejected'],
@@ -230,14 +225,7 @@ class SampleDispatchController extends Controller
             'notes'                => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $sampleDispatch->update([
-            ...$validated,
-            'status'               => 'received',
-            'received_at'          => now(),
-            'received_by_user_id'  => Auth::id(),
-        ]);
-
-        $sampleDispatch->refresh();
+        $sampleDispatch = $workflow->receive($sampleDispatch, $request->user(), $validated);
 
         if ($sampleDispatch->condition_on_arrival === 'Rejected') {
             $this->notifyRejectedDispatch($sampleDispatch);
@@ -248,34 +236,28 @@ class SampleDispatchController extends Controller
         return back()->with('success', "Dispatch {$sampleDispatch->reference} received by " . Auth::user()->name . '.');
     }
 
-    public function reject(Request $request, SampleDispatch $sampleDispatch)
+    public function reject(Request $request, SampleDispatch $sampleDispatch, SampleDispatchWorkflowService $workflow)
     {
-        if (!$this->canReceiveSamples($request->user())) {
-            return back()->with('error', 'Only Laboratory staff may reject samples.');
-        }
-
-        if ($sampleDispatch->isReceived()) {
-            return back()->with('error', 'This sample has already been marked as received.');
-        }
+        $this->authorize('reject', $sampleDispatch);
 
         $validated = $request->validate([
             'rejection_reason' => ['required', 'string', 'max:500'],
         ]);
 
-        $sampleDispatch->update([
-            'status' => 'received',
-            'received_at' => now(),
-            'received_by_user_id' => Auth::id(),
-            'condition_on_arrival' => 'Rejected',
-            'rejection_reason' => $validated['rejection_reason'],
-        ]);
-
-        $sampleDispatch->refresh();
+        $sampleDispatch = $workflow->reject($sampleDispatch, $request->user(), $validated['rejection_reason']);
         $this->notifyRejectedDispatch($sampleDispatch);
 
         return redirect()
             ->route('dashboard')
             ->with('success', "Dispatch {$sampleDispatch->reference} rejected. Driver and Clinical Operations were notified.");
+    }
+
+    public function process(Request $request, SampleDispatch $sampleDispatch, SampleDispatchWorkflowService $workflow)
+    {
+        $this->authorize('process', $sampleDispatch);
+        $workflow->process($sampleDispatch, $request->user());
+
+        return back()->with('success', "Dispatch {$sampleDispatch->reference} marked as processed.");
     }
 
     private function canReceiveSamples($user): bool

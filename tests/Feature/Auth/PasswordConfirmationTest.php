@@ -39,6 +39,7 @@ class PasswordConfirmationTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $response->assertSessionHasErrors();
+        $response->assertRedirect();
+        $response->assertSessionMissing('auth.password_confirmed_at');
     }
 }

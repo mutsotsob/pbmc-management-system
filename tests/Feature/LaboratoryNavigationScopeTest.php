@@ -10,7 +10,7 @@ class LaboratoryNavigationScopeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_laboratory_user_sees_only_home_overview_profile_and_logout_navigation(): void
+    public function test_laboratory_user_sees_only_home_profile_and_logout_navigation(): void
     {
         $user = User::factory()->create([
             'department' => 'Laboratory',
@@ -22,7 +22,7 @@ class LaboratoryNavigationScopeTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Home');
-        $response->assertSee('Overview');
+        $response->assertDontSee('Overview');
         $response->assertSee('Profile');
         $response->assertSee('Logout');
         $response->assertDontSee('Sample Dispatch');
@@ -33,7 +33,7 @@ class LaboratoryNavigationScopeTest extends TestCase
         $response->assertDontSee('Notifications');
     }
 
-    public function test_laboratory_user_is_restricted_to_home_overview_and_profile_routes(): void
+    public function test_laboratory_user_is_restricted_to_laboratory_and_profile_routes(): void
     {
         $user = User::factory()->create([
             'department' => 'Laboratory',
@@ -43,7 +43,7 @@ class LaboratoryNavigationScopeTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('analytics.index'))
-            ->assertOk();
+            ->assertRedirect(route('dashboard'));
 
         $this->actingAs($user)
             ->get(route('sample-dispatches.index'))

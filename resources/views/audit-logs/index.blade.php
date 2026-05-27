@@ -99,6 +99,8 @@
                                 'updated'          => 'bg-blue-100 text-blue-700',
                                 'deleted'          => 'bg-red-100 text-red-700',
                                 'restored'         => 'bg-purple-100 text-purple-700',
+                                'login'            => 'bg-emerald-100 text-emerald-700',
+                                'logout'           => 'bg-amber-100 text-amber-700',
                                 'password_changed' => 'bg-yellow-100 text-yellow-700',
                                 'sync_completed'   => 'bg-teal-100 text-teal-700',
                                 'import_completed' => 'bg-indigo-100 text-indigo-700',

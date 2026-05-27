@@ -86,8 +86,18 @@ class SampleDispatch extends Model
         return $query->where('status', 'received');
     }
 
+    public function scopeProcessed($query)
+    {
+        return $query->where('status', 'processed');
+    }
+
     public function isReceived(): bool
     {
         return $this->status === 'received';
+    }
+
+    public function isProcessed(): bool
+    {
+        return $this->status === 'processed';
     }
 }

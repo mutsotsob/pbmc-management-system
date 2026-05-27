@@ -58,6 +58,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sample-dispatches/{sampleDispatch}', [SampleDispatchController::class, 'show'])->name('sample-dispatches.show');
     Route::post('/sample-dispatches/{sampleDispatch}/receive', [SampleDispatchController::class, 'receive'])->name('sample-dispatches.receive');
     Route::post('/sample-dispatches/{sampleDispatch}/reject', [SampleDispatchController::class, 'reject'])->name('sample-dispatches.reject');
+    Route::post('/sample-dispatches/{sampleDispatch}/process', [SampleDispatchController::class, 'process'])->name('sample-dispatches.process');
+    Route::get('/sample-processing/under-development', fn () => view('sample-processing-under-development'))
+        ->name('sample-processing.under-development');
 
     // Driver management (admin + Clinical Operations)
     Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');

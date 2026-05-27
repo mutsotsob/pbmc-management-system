@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\SendDispatchNotificationEmail;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,12 @@ use Tests\TestCase;
 class SampleDispatchTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(VerifyCsrfToken::class);
+    }
 
     public function test_sample_dispatch_bulk_route_is_registered(): void
     {
@@ -36,7 +43,8 @@ class SampleDispatchTest extends TestCase
             'user_status' => true,
         ]);
 
-        $response = $this->actingAs($user)->post(route('sample-dispatches.bulk'), [
+        $response = $this->actingAs($user)->withSession(['_token' => 'test-token'])->post(route('sample-dispatches.bulk'), [
+            '_token' => 'test-token',
             'bulk_rows' => [
                 [
                     'participant_id' => 'PID-001',
@@ -112,7 +120,9 @@ class SampleDispatchTest extends TestCase
 
         $response = $this->actingAs($user)
             ->from(route('sample-dispatches.index'))
+            ->withSession(['_token' => 'test-token'])
             ->post(route('sample-dispatches.bulk'), [
+                '_token' => 'test-token',
                 'bulk_rows' => [
                     [
                         'participant_id' => 'PID-003',

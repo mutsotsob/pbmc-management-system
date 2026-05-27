@@ -29,7 +29,7 @@ return new class extends Migration
 
             $table->foreignId('dispatched_by_user_id')->constrained('users');
 
-            $table->enum('status', ['dispatched', 'received'])->default('dispatched');
+            $table->enum('status', ['dispatched', 'received', 'processed'])->default('dispatched');
             $table->text('notes')->nullable();
 
             // Receipt fields — filled when lab confirms arrival

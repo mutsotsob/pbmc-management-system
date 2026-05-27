@@ -88,7 +88,9 @@
                             Home
                         </a>
                     </li>
+                @endif
 
+                @if ($hasFullAccessDepartment)
                     <li>
                         <a href="{{ route('analytics.index') }}"
                             class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100

@@ -10,6 +10,8 @@ use App\Observers\Iavic114PbmcReportObserver;
 use App\Observers\PbmcObserver;
 use App\Observers\SampleDispatchObserver;
 use App\Observers\UserObserver;
+use App\Policies\SampleDispatchPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -18,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::policy(SampleDispatch::class, SampleDispatchPolicy::class);
+
         Pbmc::observe(PbmcObserver::class);
         User::observe(UserObserver::class);
         Iavic114PbmcReport::observe(Iavic114PbmcReportObserver::class);

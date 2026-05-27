@@ -14,6 +14,12 @@
             default => 'text-gray-700',
         };
         $backToDashboard = auth()->user()?->isDepartment('Laboratory') && !auth()->user()?->hasFullAccessDepartment();
+        $emailAction = request()->query('email_action');
+        $defaultCondition = old('condition_on_arrival');
+
+        if (!$defaultCondition && $emailAction === 'reject') {
+            $defaultCondition = 'Rejected';
+        }
     @endphp
 
     <div class="mx-auto max-w-6xl space-y-4">
@@ -189,7 +195,7 @@
                                 </dl>
                             </section>
                         @elseif($canReceiveSamples)
-                            <section x-data="{ condition: @js(old('condition_on_arrival')) }">
+                            <section id="confirm-receipt" x-data="{ condition: @js($defaultCondition) }">
                                 <div class="mb-4 flex items-center gap-2">
                                     <i data-feather="clipboard" class="h-4 w-4 text-green-600"></i>
                                     <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-700">Confirm Lab Receipt</h3>

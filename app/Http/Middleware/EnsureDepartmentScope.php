@@ -14,6 +14,7 @@ class EnsureDepartmentScope
         'notifications.*',
         'settings',
         'settings.password',
+        'password.confirm',
         'profile.*',
         'password.update',
         'verification.*',
@@ -22,6 +23,7 @@ class EnsureDepartmentScope
 
     private const ADMINISTRATION_ALLOWED = [
         'dashboard',
+        'password.confirm',
         'profile.*',
         'password.update',
         'verification.*',
@@ -30,11 +32,13 @@ class EnsureDepartmentScope
 
     private const LABORATORY_ALLOWED = [
         'dashboard',
-        'analytics.*',
         'sample-dispatches.show',
         'sample-dispatches.receive',
         'sample-dispatches.reject',
+        'sample-dispatches.process',
+        'sample-processing.under-development',
         'iavic114-reports.*',
+        'password.confirm',
         'profile.*',
         'password.update',
         'verification.*',
@@ -60,7 +64,7 @@ class EnsureDepartmentScope
 
         if ($user->isDepartment('Laboratory')) {
             return $this->allowOnly($request, $next, self::LABORATORY_ALLOWED, 'dashboard',
-                'Your account only has access to Home and Overview.');
+                'Your account only has access to Laboratory queue pages and profile.');
         }
 
         if (!$user->isDepartment('Clinical Operations')) {

@@ -7,6 +7,7 @@ use App\Models\Iavic114PbmcReport;
 use App\Models\SampleDispatch;
 use App\Models\User;
 use App\Notifications\SampleDispatchRejectedNotification;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
@@ -15,6 +16,12 @@ use Tests\TestCase;
 class LaboratoryDispatchDashboardTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(VerifyCsrfToken::class);
+    }
 
     public function test_laboratory_dashboard_shows_pending_dispatched_samples_for_receipt(): void
     {
@@ -121,7 +128,9 @@ class LaboratoryDispatchDashboardTest extends TestCase
             ->assertSee('Back to Receipt Queue');
 
         $this->actingAs($laboratoryUser)
+            ->withSession(['_token' => 'test-token'])
             ->post(route('sample-dispatches.receive', $dispatch), [
+                '_token' => 'test-token',
                 'condition_on_arrival' => 'Good',
                 'notes' => 'Received before processing.',
             ])
@@ -178,14 +187,18 @@ class LaboratoryDispatchDashboardTest extends TestCase
 
         $this->actingAs($laboratoryUser)
             ->from(route('dashboard'))
+            ->withSession(['_token' => 'test-token'])
             ->post(route('sample-dispatches.reject', $dispatch), [
+                '_token' => 'test-token',
                 'rejection_reason' => '',
             ])
             ->assertRedirect(route('dashboard'))
             ->assertSessionHasErrors('rejection_reason');
 
         $this->actingAs($laboratoryUser)
+            ->withSession(['_token' => 'test-token'])
             ->post(route('sample-dispatches.reject', $dispatch), [
+                '_token' => 'test-token',
                 'rejection_reason' => 'Sample bag seal was broken on arrival.',
             ])
             ->assertRedirect(route('dashboard'));
@@ -234,5 +247,92 @@ class LaboratoryDispatchDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Imported Processing Reports')
             ->assertSee('C114001_V01');
+    }
+
+    public function test_laboratory_user_can_process_non_rejected_received_sample(): void
+    {
+        $laboratoryUser = User::factory()->create([
+            'department' => 'Laboratory',
+            'user_type' => 'user',
+            'user_status' => true,
+        ]);
+
+        $dispatcher = User::factory()->create([
+            'department' => 'Clinical Operations',
+            'user_status' => true,
+        ]);
+
+        $dispatch = SampleDispatch::create([
+            'dispatch_date' => '2026-05-27',
+            'sample_id' => 'PID-PROCESS',
+            'study' => 'C225',
+            'visit' => 'v7',
+            'origin_location' => 'Mutala Vainona',
+            'quantity' => 1,
+            'no_of_bags' => 1,
+            'destination' => 'IDRL Southerton',
+            'driver_name' => 'Process Driver',
+            'dispatched_by_user_id' => $dispatcher->id,
+            'status' => 'received',
+            'received_at' => now(),
+            'received_by_user_id' => $laboratoryUser->id,
+            'condition_on_arrival' => 'Good',
+        ]);
+
+        $this->actingAs($laboratoryUser)
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('sample-dispatches.process', $dispatch), [
+                '_token' => 'test-token',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('sample_dispatches', [
+            'id' => $dispatch->id,
+            'status' => 'processed',
+        ]);
+    }
+
+    public function test_laboratory_user_cannot_process_rejected_sample(): void
+    {
+        $laboratoryUser = User::factory()->create([
+            'department' => 'Laboratory',
+            'user_type' => 'user',
+            'user_status' => true,
+        ]);
+
+        $dispatcher = User::factory()->create([
+            'department' => 'Clinical Operations',
+            'user_status' => true,
+        ]);
+
+        $dispatch = SampleDispatch::create([
+            'dispatch_date' => '2026-05-27',
+            'sample_id' => 'PID-REJECTED',
+            'study' => 'C225',
+            'visit' => 'v8',
+            'origin_location' => 'Mutala Vainona',
+            'quantity' => 1,
+            'no_of_bags' => 1,
+            'destination' => 'IDRL Southerton',
+            'driver_name' => 'Rejected Driver',
+            'dispatched_by_user_id' => $dispatcher->id,
+            'status' => 'received',
+            'received_at' => now(),
+            'received_by_user_id' => $laboratoryUser->id,
+            'condition_on_arrival' => 'Rejected',
+            'rejection_reason' => 'Damaged sample',
+        ]);
+
+        $this->actingAs($laboratoryUser)
+            ->withSession(['_token' => 'test-token'])
+            ->post(route('sample-dispatches.process', $dispatch), [
+                '_token' => 'test-token',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('sample_dispatches', [
+            'id' => $dispatch->id,
+            'status' => 'received',
+        ]);
     }
 }

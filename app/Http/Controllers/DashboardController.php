@@ -156,7 +156,10 @@ class DashboardController extends Controller
     private function laboratoryDashboard(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
-        $sampleStatus = $request->query('sample_status') === 'received' ? 'received' : 'dispatched';
+        $requestedStatus = (string) $request->query('sample_status', 'dispatched');
+        $sampleStatus = in_array($requestedStatus, ['dispatched', 'received', 'processed'], true)
+            ? $requestedStatus
+            : 'dispatched';
         $allowedSorts = [
             'reference',
             'dispatch_date',
@@ -171,7 +174,7 @@ class DashboardController extends Controller
             'created_at',
         ];
 
-        $sort = $request->query('sort', $sampleStatus === 'received' ? 'received_at' : 'dispatch_date');
+        $sort = $request->query('sort', $sampleStatus === 'dispatched' ? 'dispatch_date' : 'received_at');
         $dir = $request->query('dir', 'desc') === 'asc' ? 'asc' : 'desc';
 
         if (!in_array($sort, $allowedSorts, true)) {

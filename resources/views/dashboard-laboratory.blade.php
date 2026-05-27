@@ -16,6 +16,8 @@
         $sortIcon = fn (string $column) => $sort === $column ? ($dir === 'asc' ? 'chevron-up' : 'chevron-down') : null;
         $sortLinkClasses = 'inline-flex items-center gap-1 text-gray-500 hover:text-gray-900';
         $isReceivedTab = $sampleStatus === 'received';
+        $isProcessedTab = $sampleStatus === 'processed';
+        $isDispatchedTab = $sampleStatus === 'dispatched';
         $activeTabClasses = 'border-pbmc bg-orange-50 text-pbmc';
         $inactiveTabClasses = 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900';
         $reportsIndexUrl = \Illuminate\Support\Facades\Route::has('iavic114-reports.index')
@@ -59,7 +61,7 @@
             <div class="border-b border-gray-200 px-5 py-4">
                 <div class="mb-4 flex flex-wrap items-center gap-2">
                     <a href="{{ route('dashboard', ['sample_status' => 'dispatched']) }}"
-                        class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold {{ !$isReceivedTab ? $activeTabClasses : $inactiveTabClasses }}">
+                        class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold {{ $isDispatchedTab ? $activeTabClasses : $inactiveTabClasses }}">
                         <i data-feather="inbox" class="h-4 w-4"></i>
                         Awaiting Receipt
                     </a>
@@ -68,13 +70,20 @@
                         <i data-feather="check-circle" class="h-4 w-4"></i>
                         Received Samples
                     </a>
+                    <a href="{{ route('dashboard', ['sample_status' => 'processed']) }}"
+                        class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold {{ $isProcessedTab ? $activeTabClasses : $inactiveTabClasses }}">
+                        <i data-feather="layers" class="h-4 w-4"></i>
+                        Processed Samples
+                    </a>
                 </div>
 
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <h2 class="text-lg font-bold text-gray-900">{{ $isReceivedTab ? 'Received Samples' : 'Dispatched Samples' }}</h2>
+                        <h2 class="text-lg font-bold text-gray-900">
+                            {{ $isDispatchedTab ? 'Dispatched Samples' : ($isReceivedTab ? 'Received Samples' : 'Processed Samples') }}
+                        </h2>
                         <p class="mt-1 text-sm text-gray-500">
-                            {{ $isReceivedTab ? 'Samples already received by the laboratory.' : 'Confirm receipt here before the sample is processed.' }}
+                            {{ $isDispatchedTab ? 'Confirm receipt here before the sample is processed.' : ($isReceivedTab ? 'Samples already received by the laboratory.' : 'Samples that were successfully processed by laboratory staff.') }}
                         </p>
                     </div>
 
@@ -107,7 +116,7 @@
                 </div>
 
                 <p class="mt-3 text-xs text-gray-500">
-                    Showing {{ $dispatches->firstItem() ?? 0 }}-{{ $dispatches->lastItem() ?? 0 }} of {{ $dispatches->total() }} {{ $isReceivedTab ? 'received' : 'pending' }} record{{ $dispatches->total() === 1 ? '' : 's' }}
+                    Showing {{ $dispatches->firstItem() ?? 0 }}-{{ $dispatches->lastItem() ?? 0 }} of {{ $dispatches->total() }} {{ $isDispatchedTab ? 'pending' : ($isReceivedTab ? 'received' : 'processed') }} record{{ $dispatches->total() === 1 ? '' : 's' }}
                 </p>
             </div>
 
@@ -115,15 +124,15 @@
                 <div class="p-10 text-center">
                     <i data-feather="check-circle" class="mx-auto h-8 w-8 text-green-600"></i>
                     <p class="mt-3 text-sm font-medium text-gray-800">
-                        {{ $isReceivedTab ? 'No samples have been received yet.' : 'No dispatched samples are awaiting receipt.' }}
+                        {{ $isDispatchedTab ? 'No dispatched samples are awaiting receipt.' : ($isReceivedTab ? 'No samples have been received yet.' : 'No processed samples found.') }}
                     </p>
                     <p class="mt-1 text-sm text-gray-500">
-                        {{ $isReceivedTab ? 'Received samples will appear here after laboratory confirmation.' : 'New dispatches will appear here when Clinical Operations sends them.' }}
+                        {{ $isDispatchedTab ? 'New dispatches will appear here when Clinical Operations sends them.' : ($isReceivedTab ? 'Received samples will appear here after laboratory confirmation.' : 'Processed samples will appear here after you click Process Sample.') }}
                     </p>
                 </div>
             @else
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <table class="w-full min-w-[1200px] table-auto divide-y divide-gray-200 text-sm">
                         <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
                             <tr>
                                 <th class="px-4 py-3 text-left">
@@ -174,24 +183,26 @@
                                         @endif
                                     </a>
                                 </th>
-                                <th class="px-4 py-3 text-left">
-                                    <a href="{{ $sortUrl('origin_location') }}" class="{{ $sortLinkClasses }}">
-                                        Route
-                                        @if ($sortIcon('origin_location'))
-                                            <i data-feather="{{ $sortIcon('origin_location') }}" class="h-3 w-3"></i>
-                                        @endif
-                                    </a>
-                                </th>
-                                <th class="px-4 py-3 text-left">
-                                    <a href="{{ $sortUrl('driver_name') }}" class="{{ $sortLinkClasses }}">
-                                        Driver
-                                        @if ($sortIcon('driver_name'))
-                                            <i data-feather="{{ $sortIcon('driver_name') }}" class="h-3 w-3"></i>
-                                        @endif
-                                    </a>
-                                </th>
+                                @if (!$isReceivedTab)
+                                    <th class="px-4 py-3 text-left">
+                                        <a href="{{ $sortUrl('origin_location') }}" class="{{ $sortLinkClasses }}">
+                                            Route
+                                            @if ($sortIcon('origin_location'))
+                                                <i data-feather="{{ $sortIcon('origin_location') }}" class="h-3 w-3"></i>
+                                            @endif
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3 text-left">
+                                        <a href="{{ $sortUrl('driver_name') }}" class="{{ $sortLinkClasses }}">
+                                            Driver
+                                            @if ($sortIcon('driver_name'))
+                                                <i data-feather="{{ $sortIcon('driver_name') }}" class="h-3 w-3"></i>
+                                            @endif
+                                        </a>
+                                    </th>
+                                @endif
                                 <th class="px-4 py-3 text-left">Dispatched By</th>
-                                @if ($isReceivedTab)
+                                @if (!$isDispatchedTab)
                                     <th class="px-4 py-3 text-left">
                                         <a href="{{ $sortUrl('received_at') }}" class="{{ $sortLinkClasses }}">
                                             Received
@@ -207,8 +218,8 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 bg-white">
                             @foreach ($dispatches as $dispatch)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-4 font-mono text-xs text-gray-700">{{ $dispatch->reference }}</td>
+                                <tr class="align-top hover:bg-gray-50">
+                                    <td class="whitespace-nowrap px-4 py-4 font-mono text-xs text-gray-700">{{ $dispatch->reference }}</td>
                                     <td class="whitespace-nowrap px-4 py-4 text-gray-700">
                                         {{ $dispatch->dispatch_date?->format('d M Y') ?? '-' }}
                                         @if ($dispatch->dispatch_time)
@@ -219,25 +230,29 @@
                                     <td class="whitespace-nowrap px-4 py-4 text-gray-700">{{ $dispatch->visit ?: '-' }}</td>
                                     <td class="px-4 py-4 text-gray-800">
                                         @forelse ($dispatch->items as $item)
-                                            <div>{{ $item->participant_id }}</div>
+                                            <div class="max-w-48 break-all">{{ $item->participant_id }}</div>
                                         @empty
-                                            {{ $dispatch->sample_id ?: '-' }}
+                                            <div class="max-w-48 break-all">{{ $dispatch->sample_id ?: '-' }}</div>
                                         @endforelse
                                     </td>
                                     <td class="px-4 py-4 text-gray-700">{{ $dispatch->no_of_bags ?? '-' }}</td>
+                                    @if (!$isReceivedTab)
+                                        <td class="px-4 py-4 text-gray-700">
+                                            <span class="block max-w-56 truncate font-medium text-gray-900">{{ $dispatch->origin_location }}</span>
+                                            <span class="mx-1 text-gray-400">to</span>
+                                            <span class="block max-w-56 truncate">{{ $dispatch->destination }}</span>
+                                        </td>
+                                        <td class="px-4 py-4 text-gray-700">
+                                            <span class="block max-w-44 truncate">{{ $dispatch->driver_name ?: '-' }}</span>
+                                            @if ($dispatch->driver_phone)
+                                                <span class="block text-xs text-gray-400">{{ $dispatch->driver_phone }}</span>
+                                            @endif
+                                        </td>
+                                    @endif
                                     <td class="px-4 py-4 text-gray-700">
-                                        <span class="font-medium text-gray-900">{{ $dispatch->origin_location }}</span>
-                                        <span class="mx-1 text-gray-400">to</span>
-                                        {{ $dispatch->destination }}
+                                        <span class="block max-w-44 truncate">{{ $dispatch->dispatchedBy?->name ?? '-' }}</span>
                                     </td>
-                                    <td class="px-4 py-4 text-gray-700">
-                                        {{ $dispatch->driver_name ?: '-' }}
-                                        @if ($dispatch->driver_phone)
-                                            <span class="block text-xs text-gray-400">{{ $dispatch->driver_phone }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-4 text-gray-700">{{ $dispatch->dispatchedBy?->name ?? '-' }}</td>
-                                    @if ($isReceivedTab)
+                                    @if (!$isDispatchedTab)
                                         <td class="whitespace-nowrap px-4 py-4 text-gray-700">
                                             {{ $dispatch->received_at?->format('d M Y H:i') ?? '-' }}
                                             @if ($dispatch->receivedBy)
@@ -249,12 +264,12 @@
                                     <td class="px-4 py-4 text-right">
                                         <div class="inline-flex items-center justify-end gap-2">
                                             <a href="{{ route('sample-dispatches.show', $dispatch) }}"
-                                                class="inline-flex items-center justify-center gap-2 rounded-lg {{ $isReceivedTab ? 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50' : 'bg-green-600 text-white hover:bg-green-700' }} px-3 py-2 text-xs font-semibold">
-                                                <i data-feather="{{ $isReceivedTab ? 'eye' : 'check' }}" class="h-3 w-3"></i>
-                                                {{ $isReceivedTab ? 'View' : 'Receive' }}
+                                                class="inline-flex items-center justify-center gap-2 rounded-lg {{ $isDispatchedTab ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700' }} px-3 py-2 text-xs font-semibold">
+                                                <i data-feather="{{ $isDispatchedTab ? 'check' : 'eye' }}" class="h-3 w-3"></i>
+                                                {{ $isDispatchedTab ? 'Receive' : 'View' }}
                                             </a>
 
-                                            @if (!$isReceivedTab)
+                                            @if ($isDispatchedTab)
                                                 @php
                                                     $rejectActionUrl = \Illuminate\Support\Facades\Route::has('sample-dispatches.reject')
                                                         ? route('sample-dispatches.reject', $dispatch)
@@ -266,6 +281,32 @@
                                                     <i data-feather="x-circle" class="h-3 w-3"></i>
                                                     Reject
                                                 </button>
+                                            @elseif ($isReceivedTab)
+                                                @if (($dispatch->condition_on_arrival ?? null) !== 'Rejected')
+                                                    @if (strcasecmp((string) ($dispatch->study ?? ''), 'C114') === 0)
+                                                        @php
+                                                            $iavicIndexUrl = \Illuminate\Support\Facades\Route::has('iavic114-reports.index')
+                                                                ? route('iavic114-reports.index')
+                                                                : url('/iavic114-reports');
+                                                        @endphp
+                                                        <a href="{{ $iavicIndexUrl }}"
+                                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700">
+                                                            <i data-feather="cpu" class="h-3 w-3"></i>
+                                                            Process Sample
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('sample-processing.under-development') }}"
+                                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700">
+                                                            <i data-feather="cpu" class="h-3 w-3"></i>
+                                                            Process Sample
+                                                        </a>
+                                                    @endif
+                                                @else
+                                                    <span class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-500">
+                                                        <i data-feather="slash" class="h-3 w-3"></i>
+                                                        Not Processable
+                                                    </span>
+                                                @endif
                                             @endif
                                         </div>
                                     </td>
@@ -277,7 +318,7 @@
 
                 <div class="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-xs text-gray-500">
-                        Showing {{ $dispatches->firstItem() ?? 0 }}-{{ $dispatches->lastItem() ?? 0 }} of {{ $dispatches->total() }} {{ $isReceivedTab ? 'received' : 'pending' }} record{{ $dispatches->total() === 1 ? '' : 's' }}
+                        Showing {{ $dispatches->firstItem() ?? 0 }}-{{ $dispatches->lastItem() ?? 0 }} of {{ $dispatches->total() }} {{ $isDispatchedTab ? 'pending' : ($isReceivedTab ? 'received' : 'processed') }} record{{ $dispatches->total() === 1 ? '' : 's' }}
                     </p>
                     <div>
                         {{ $dispatches->links() }}
