@@ -255,8 +255,13 @@
                                             </a>
 
                                             @if (!$isReceivedTab)
+                                                @php
+                                                    $rejectActionUrl = \Illuminate\Support\Facades\Route::has('sample-dispatches.reject')
+                                                        ? route('sample-dispatches.reject', $dispatch)
+                                                        : url('/sample-dispatches/' . $dispatch->id . '/reject');
+                                                @endphp
                                                 <button type="button"
-                                                    @click="rejectOpen = true; rejectAction = @js(route('sample-dispatches.reject', $dispatch)); rejectReference = @js($dispatch->reference); rejectionReason = ''; $nextTick(() => $refs.rejectionReasonInput?.focus())"
+                                                    @click="rejectOpen = true; rejectAction = @js($rejectActionUrl); rejectReference = @js($dispatch->reference); rejectionReason = ''; $nextTick(() => $refs.rejectionReasonInput?.focus())"
                                                     class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100">
                                                     <i data-feather="x-circle" class="h-3 w-3"></i>
                                                     Reject
