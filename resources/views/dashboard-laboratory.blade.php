@@ -18,6 +18,9 @@
         $isReceivedTab = $sampleStatus === 'received';
         $activeTabClasses = 'border-pbmc bg-orange-50 text-pbmc';
         $inactiveTabClasses = 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900';
+        $reportsIndexUrl = \Illuminate\Support\Facades\Route::has('iavic114-reports.index')
+            ? route('iavic114-reports.index')
+            : url('/iavic114-reports');
     @endphp
 
     <div class="space-y-5"
@@ -41,7 +44,7 @@
                 <p class="mt-1 text-xs text-gray-500">Recorded on pending dispatched samples</p>
             </div>
 
-            <a href="{{ route('iavic114-reports.index') }}"
+            <a href="{{ $reportsIndexUrl }}"
                 class="group rounded-lg border border-orange-200 bg-orange-50 p-5 shadow-sm transition hover:border-orange-300 hover:bg-orange-100">
                 <div class="flex items-center justify-between gap-3">
                     <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">Processing Reports</p>
