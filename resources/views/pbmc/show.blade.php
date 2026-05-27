@@ -18,13 +18,6 @@
                     <span class="text-gray-800 font-medium">PBMC #{{ $pbmc->ptid }}</span>
                 </div>
 
-                @if (session('success'))
-                    <x-alert type="success">{{ session('success') }}</x-alert>
-                @endif
-                @if (session('error'))
-                    <x-alert type="error">{{ session('error') }}</x-alert>
-                @endif
-
                 <div class="bg-white rounded-xl border overflow-hidden">
 
                     <!-- Header Section -->

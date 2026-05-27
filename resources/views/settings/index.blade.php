@@ -6,32 +6,6 @@
 @section('content')
 <div class="max-w-4xl mx-auto" x-data="settingsForm()">
 
-    {{-- SUCCESS ALERT --}}
-    @if (session('success'))
-        <div
-            x-data="{ show: true }"
-            x-init="setTimeout(() => show = false, 7000)"
-            x-show="show"
-            x-transition
-            class="mb-5 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700 text-sm"
-        >
-            {{ session('success') }}
-        </div>
-    @endif
-
-    {{-- ERROR ALERT --}}
-    @if (session('error'))
-        <div
-            x-data="{ show: true }"
-            x-init="setTimeout(() => show = false, 7000)"
-            x-show="show"
-            x-transition
-            class="mb-5 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm"
-        >
-            {{ session('error') }}
-        </div>
-    @endif
-
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <div class="flex items-start justify-between gap-4">
             <div>

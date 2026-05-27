@@ -23,17 +23,6 @@
         </a>
     </div>
 
-    @if ($errors->any())
-        <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-5 py-4">
-            <p class="mb-1 text-sm font-semibold text-red-800">Please correct the following:</p>
-            <ul class="list-inside list-disc space-y-0.5 text-sm text-red-700">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <form method="POST" action="{{ route('iavic114-reports.store') }}" id="worksheet" class="space-y-5">
         @csrf
 

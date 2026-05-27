@@ -25,7 +25,7 @@
     {{ $attributes->merge(['class' => "mb-4 flex items-start gap-3 rounded-lg border p-4 text-sm $cls"]) }}
 >
     <i data-feather="{{ $icon }}" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
-    <span class="flex-1">{{ $slot }}</span>
+    <div class="flex-1">{{ $slot }}</div>
     @if($dismissible)
         <button @click="show = false" class="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity">
             <i data-feather="x" class="w-4 h-4"></i>

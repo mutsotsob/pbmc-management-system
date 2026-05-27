@@ -13,21 +13,18 @@
 @endphp
 
 <div class="mx-auto max-w-5xl space-y-5">
-    @if (session('status') === 'password-updated')
-        <x-alert type="success">Your password has been updated successfully.</x-alert>
-    @endif
-
-    @if (session('error'))
-        <x-alert type="error">{{ session('error') }}</x-alert>
-    @endif
-
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div class="border-b border-gray-200 bg-gray-50 px-5 py-5 sm:px-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-pbmc text-lg font-bold text-white">
-                        {{ $initials ?: 'U' }}
-                    </div>
+                    @if ($user->profile_photo_url)
+                        <img src="{{ $user->profile_photo_url }}" alt="{{ $user->name }} profile picture"
+                            class="h-14 w-14 shrink-0 rounded-full border border-gray-200 object-cover">
+                    @else
+                        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-pbmc text-lg font-bold text-white">
+                            {{ $initials ?: 'U' }}
+                        </div>
+                    @endif
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">{{ $user->name }}</h2>
                         <p class="text-sm text-gray-600">{{ $user->email }}</p>
@@ -54,6 +51,39 @@
                         </p>
                     </div>
                 </div>
+
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data"
+                    class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    @csrf
+                    @method('patch')
+
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                        @if ($user->profile_photo_url)
+                            <img src="{{ $user->profile_photo_url }}" alt="{{ $user->name }} profile picture"
+                                class="h-16 w-16 shrink-0 rounded-full border border-gray-200 object-cover">
+                        @else
+                            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-pbmc text-xl font-bold text-white">
+                                {{ $initials ?: 'U' }}
+                            </div>
+                        @endif
+
+                        <div class="flex-1">
+                            <label for="profile_photo" class="mb-1 block text-sm font-medium text-gray-700">Profile Picture</label>
+                            <input id="profile_photo" name="profile_photo" type="file" accept="image/png,image/jpeg,image/webp"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                            <p class="mt-1 text-xs text-gray-500">Upload a JPG, PNG, or WebP image up to 2 MB.</p>
+                            @error('profile_photo')
+                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-pbmc px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+                            <i data-feather="upload" class="h-4 w-4"></i>
+                            Upload
+                        </button>
+                    </div>
+                </form>
 
                 <dl class="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
                     <div>

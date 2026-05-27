@@ -7,13 +7,6 @@
 @section('content')
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
-    @if (session('success'))
-        <x-alert type="success">{{ session('success') }}</x-alert>
-    @endif
-    @if (session('error'))
-        <x-alert type="error">{{ session('error') }}</x-alert>
-    @endif
-
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
@@ -64,13 +57,62 @@
         </div>
     </div>
 
+    @php
+        $reportQuery = request()->query();
+    @endphp
+
+    {{-- Reports --}}
+    <div class="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-4">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-800">Pull User Reports</h3>
+                <p class="text-xs text-gray-600">Export the current user list, including any active search or sorting.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('admin.users.export.excel', $reportQuery) }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                    <i data-feather="download" class="w-4 h-4"></i>
+                    Excel
+                </a>
+                <a href="{{ route('admin.users.export.csv', $reportQuery) }}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                    <i data-feather="file-text" class="w-4 h-4"></i>
+                    CSV
+                </a>
+                <a href="{{ route('admin.users.export.pdf', $reportQuery) }}" target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-2 rounded-lg bg-gray-700 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800">
+                    <i data-feather="printer" class="w-4 h-4"></i>
+                    Print PDF
+                </a>
+            </div>
+        </div>
+    </div>
+
     {{-- Bulk actions (server-side) --}}
     <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div class="text-sm text-gray-600">
             Tip: Select users then use bulk actions.
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+            <button type="button"
+                    onclick="submitSelectedUserReport('{{ route('admin.users.export.selected.excel') }}')"
+                    class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold">
+                Export Selected Excel
+            </button>
+
+            <button type="button"
+                    onclick="submitSelectedUserReport('{{ route('admin.users.export.selected.csv') }}')"
+                    class="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold">
+                Export Selected CSV
+            </button>
+
+            <button type="button"
+                    onclick="submitSelectedUserReport('{{ route('admin.users.export.selected.pdf') }}', true)"
+                    class="px-3 py-2 rounded-lg bg-gray-700 text-white text-sm font-semibold">
+                Print Selected PDF
+            </button>
+
             <form method="POST" action="{{ route('admin.users.bulk.enable') }}" id="bulkEnableForm">
                 @csrf
                 <button type="submit"
@@ -92,6 +134,10 @@
         </div>
     </div>
 
+    <form method="POST" id="userReportExportForm" class="hidden">
+        @csrf
+    </form>
+
     <form id="usersForm">
         <div class="overflow-x-auto border border-gray-100 rounded-lg">
             <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
@@ -103,7 +149,7 @@
 
                         {{-- Sortable headers (server-side) --}}
                         @php
-                            function sortLink($label, $field) {
+                            $sortLink = function ($label, $field) {
                                 $currentSort = request('sort','name');
                                 $currentDir = request('dir','asc');
                                 $dir = ($currentSort === $field && $currentDir === 'asc') ? 'desc' : 'asc';
@@ -116,16 +162,16 @@
                                     $arrow = $currentDir === 'asc' ? ' ↑' : ' ↓';
                                 }
 
-                                return '<a class="hover:underline" href="'.$url.'">'.$label.$arrow.'</a>';
-                            }
+                                return '<a class="hover:underline" href="'.e($url).'">'.e($label.$arrow).'</a>';
+                            };
                         @endphp
 
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! sortLink('Name','name') !!}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! sortLink('Email','email') !!}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! sortLink('Department','department') !!}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! sortLink('Job Title','job_title') !!}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! sortLink('Type','user_type') !!}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! sortLink('Status','user_status') !!}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! $sortLink('Name','name') !!}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! $sortLink('Email','email') !!}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! $sortLink('Department','department') !!}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! $sortLink('Job Title','job_title') !!}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! $sortLink('Type','user_type') !!}</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">{!! $sortLink('Status','user_status') !!}</th>
                         <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-600">Actions</th>
                     </tr>
                 </thead>
@@ -237,6 +283,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         return true;
+    }
+
+    window.submitSelectedUserReport = function(action, openInNewTab = false) {
+        const ids = selectedIds();
+
+        if (ids.length === 0) {
+            alert('Please select at least one user.');
+            return;
+        }
+
+        const form = document.getElementById('userReportExportForm');
+        form.action = action;
+        form.target = openInNewTab ? '_blank' : '_self';
+
+        form.querySelectorAll('input[name="selected_user_ids[]"]').forEach(i => i.remove());
+
+        ids.forEach(id => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'selected_user_ids[]';
+            inp.value = id;
+            form.appendChild(inp);
+        });
+
+        form.submit();
+        form.target = '_self';
     }
 });
 </script>

@@ -14,6 +14,36 @@ use Illuminate\Support\Facades\Response;
 
 class Iavic114ReportController extends Controller
 {
+    public function index(Request $request)
+    {
+        $allowedSorts = ['sample_id_visit_number', 'report_date', 'viability_percent', 'cryovials_frozen', 'operator_initials', 'created_at'];
+
+        $reportSort = $request->query('report_sort', 'report_date');
+        $reportDir = $request->query('report_dir', 'desc') === 'asc' ? 'asc' : 'desc';
+
+        if (!in_array($reportSort, $allowedSorts, true)) {
+            $reportSort = 'report_date';
+        }
+
+        $reportSampleId = trim((string) $request->query('report_sample_id', ''));
+        $reportOperator = trim((string) $request->query('report_operator', ''));
+
+        $iavicReports = Iavic114PbmcReport::query()
+            ->when($reportSampleId !== '', fn ($query) => $query->where('sample_id_visit_number', 'like', '%' . $reportSampleId . '%'))
+            ->when($reportOperator !== '', fn ($query) => $query->where('operator_initials', 'like', '%' . $reportOperator . '%'))
+            ->orderBy($reportSort, $reportDir)
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('iavic114-reports.index', compact(
+            'iavicReports',
+            'reportSort',
+            'reportDir',
+            'reportSampleId',
+            'reportOperator',
+        ));
+    }
+
     public function create()
     {
         $labOperators = User::query()
@@ -151,12 +181,12 @@ class Iavic114ReportController extends Controller
         return $this->renderPdf($reports, 'IAVIC114 Imported Reports');
     }
 
-    public function exportSelectedPdf(Request $request): View
+    public function exportSelectedPdf(Request $request)
     {
         $reports = $this->resolveSelected($request);
 
         if ($reports->isEmpty()) {
-            abort(422, 'Please select at least one report to export.');
+            return back()->with('error', 'Please select at least one report to export.');
         }
 
         return $this->renderPdf($reports, 'Selected IAVIC114 Imported Reports');

@@ -22,9 +22,9 @@ class UserCreatedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Welcome to PBMC Processing Portal')
+            ->subject('Welcome to Samples Management System')
             ->greeting("Hello {$notifiable->name},")
-            ->line('Your account has been created on the PBMC Processing Portal.')
+            ->line('Your account has been created on the Samples Management System.')
             ->line('**Email:** ' . $notifiable->email)
             ->line('**Temporary Password:** ' . $this->plainPassword)
             ->line('Please log in and change your password immediately.')

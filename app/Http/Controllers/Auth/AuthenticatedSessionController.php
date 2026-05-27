@@ -34,7 +34,9 @@ class AuthenticatedSessionController extends Controller
             ? route('sample-dispatches.index', absolute: false)
             : route('dashboard', absolute: false);
 
-        return redirect()->intended($home);
+        return redirect()
+            ->intended($home)
+            ->with('success', 'Signed in successfully.');
     }
 
     /**
@@ -48,6 +50,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')
+            ->with('success', 'Signed out successfully.');
     }
 }

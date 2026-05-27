@@ -5,13 +5,6 @@
 
 @section('content')
 
-    @if (session('success'))
-        <x-alert type="success">{{ session('success') }}</x-alert>
-    @endif
-    @if (session('error'))
-        <x-alert type="error">{{ session('error') }}</x-alert>
-    @endif
-
     <div class="bg-white rounded-xl border border-gray-200 p-6">
 
         <h2 class="text-lg font-bold text-orange-600 mb-1">

@@ -30,22 +30,6 @@
                         </p>
                     </div>
 
-                    @if ($errors->any())
-                        <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                            <div class="flex items-start gap-3">
-                                <i data-feather="alert-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"></i>
-                                <div class="flex-1">
-                                    <h3 class="font-semibold text-red-900 mb-2">There were errors with your submission:</h3>
-                                    <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
                     <form method="POST" action="{{ route('pbmc.update', $pbmc) }}">
                         @csrf
                         @method('PUT')

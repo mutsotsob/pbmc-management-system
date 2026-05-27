@@ -43,7 +43,7 @@
                 <img src="{{ asset('idrl.png') }}" alt="PBMC Logo"
                     class="w-36 h-20 mx-auto rounded-lg border border-gray-200 object-contain bg-white p-2">
                 <p class="mt-3 text-xs tracking-widest text-gray-600 uppercase">
-                    PBMC Processing Portal
+                    Samples Management System
                 </p>
             </div>
 

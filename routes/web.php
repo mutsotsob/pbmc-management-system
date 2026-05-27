@@ -54,16 +54,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sample-dispatches', [SampleDispatchController::class, 'index'])->name('sample-dispatches.index');
     Route::get('/sample-dispatches/create', [SampleDispatchController::class, 'create'])->name('sample-dispatches.create');
     Route::post('/sample-dispatches', [SampleDispatchController::class, 'store'])->name('sample-dispatches.store');
+    Route::post('/sample-dispatches/bulk', [SampleDispatchController::class, 'bulk'])->name('sample-dispatches.bulk');
     Route::get('/sample-dispatches/{sampleDispatch}', [SampleDispatchController::class, 'show'])->name('sample-dispatches.show');
     Route::post('/sample-dispatches/{sampleDispatch}/receive', [SampleDispatchController::class, 'receive'])->name('sample-dispatches.receive');
+    Route::post('/sample-dispatches/{sampleDispatch}/reject', [SampleDispatchController::class, 'reject'])->name('sample-dispatches.reject');
 
     // Driver management (admin + Clinical Operations)
     Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
+    Route::get('/drivers/{driver}/edit', [DriverController::class, 'edit'])->name('drivers.edit');
+    Route::get('/drivers/{driver}', [DriverController::class, 'show'])->name('drivers.show');
     Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
     Route::put('/drivers/{driver}', [DriverController::class, 'update'])->name('drivers.update');
     Route::patch('/drivers/{driver}/toggle-active', [DriverController::class, 'toggleActive'])->name('drivers.toggle-active');
 
     // IAVIC114 reports
+    Route::get('/iavic114-reports', [Iavic114ReportController::class, 'index'])->name('iavic114-reports.index');
     Route::get('/iavic114-reports/create', [Iavic114ReportController::class, 'create'])->name('iavic114-reports.create');
     Route::post('/iavic114-reports', [Iavic114ReportController::class, 'store'])->name('iavic114-reports.store');
     Route::get('/iavic114-reports/{iavic114PbmcReport}/print', [Iavic114ReportController::class, 'printReport'])->name('iavic114-reports.print');
@@ -84,6 +89,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users');
         Route::get('/admin/users/create', [UserController::class, 'create'])->name('admin.users.create');
         Route::post('/admin/users', [UserController::class, 'store'])->name('admin.users.store');
+        Route::get('/admin/users/export/excel', [UserController::class, 'exportExcel'])->name('admin.users.export.excel');
+        Route::post('/admin/users/export/excel', [UserController::class, 'exportSelectedExcel'])->name('admin.users.export.selected.excel');
+        Route::get('/admin/users/export/csv', [UserController::class, 'exportCsv'])->name('admin.users.export.csv');
+        Route::post('/admin/users/export/csv', [UserController::class, 'exportSelectedCsv'])->name('admin.users.export.selected.csv');
+        Route::get('/admin/users/export/pdf', [UserController::class, 'exportPdf'])->name('admin.users.export.pdf');
+        Route::post('/admin/users/export/pdf', [UserController::class, 'exportSelectedPdf'])->name('admin.users.export.selected.pdf');
         Route::get('/admin/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
         Route::get('/admin/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
         Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');

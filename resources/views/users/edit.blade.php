@@ -4,142 +4,117 @@
 @section('page-title', 'Edit User')
 
 @section('content')
-<div class="max-w-3xl bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div class="max-w-3xl bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h2 class="text-lg font-bold text-gray-800">Edit User</h2>
-            <p class="text-sm text-gray-500">
-                Update user information and access level.
-            </p>
-        </div>
-
-        <a href="{{ route('admin.users') }}"
-           class="text-sm text-gray-600 hover:text-gray-800">
-            ← Back to Users
-        </a>
-    </div>
-
-    @if (session('success'))
-        <x-alert type="success">{{ session('success') }}</x-alert>
-    @endif
-    @if ($errors->any())
-        <x-alert type="error" :dismissible="false">
-            <ul class="list-disc ml-4 space-y-0.5">
-                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
-        </x-alert>
-    @endif
-<form method="POST" action="{{ route('admin.users.update', ['user' => $user->id]) }}">
-
-        @csrf
-        @method('PUT')
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <!-- Name -->
+        <div class="flex items-center justify-between mb-6">
             <div>
-                <label class="block text-sm font-medium mb-1">Full Name</label>
-                <input type="text"
-                       name="name"
-                       value="{{ old('name', $user->name) }}"
-                       class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                <h2 class="text-lg font-bold text-gray-800">Edit User</h2>
+                <p class="text-sm text-gray-500">
+                    Update user information and access level.
+                </p>
             </div>
 
-            <!-- Email -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Email</label>
-                <input type="email"
-                       name="email"
-                       value="{{ old('email', $user->email) }}"
-                       class="w-full rounded-lg border px-4 py-2.5 text-sm">
-            </div>
-
-            <!-- Department (LOCKED) -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Department</label>
-                <select name="department"
-                        class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white">
-                    <option value="">Select department</option>
-
-                    @php $dept = old('department', $user->department); @endphp
-
-                    @foreach(config('departments') as $d)
-                        <option value="{{ $d }}" {{ $dept === $d ? 'selected' : '' }}>{{ $d }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Job Title -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Job Title</label>
-                <input type="text"
-                       name="job_title"
-                       value="{{ old('job_title', $user->job_title) }}"
-                       class="w-full rounded-lg border px-4 py-2.5 text-sm">
-            </div>
-
-            <!-- Phone -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Phone Number</label>
-                <input type="text"
-                       name="phone_number"
-                       value="{{ old('phone_number', $user->phone_number) }}"
-                       class="w-full rounded-lg border px-4 py-2.5 text-sm">
-            </div>
-
-            <!-- User Type -->
-            <div>
-                <label class="block text-sm font-medium mb-1">User Role</label>
-                <select name="user_type"
-                        class="w-full rounded-lg border px-4 py-2.5 text-sm">
-                    <option value="user" {{ old('user_type', $user->user_type) === 'user' ? 'selected' : '' }}>
-                        User
-                    </option>
-                    <option value="admin" {{ old('user_type', $user->user_type) === 'admin' ? 'selected' : '' }}>
-                        Admin
-                    </option>
-                </select>
-            </div>
-
-            <!-- Status -->
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-2">Account Status</label>
-                <div class="flex items-center gap-6">
-                    <label class="inline-flex items-center gap-2">
-                        <input type="radio"
-                               name="user_status"
-                               value="1"
-                               {{ old('user_status', $user->user_status) == 1 ? 'checked' : '' }}>
-                        <span class="text-sm">Active</span>
-                    </label>
-
-                    <label class="inline-flex items-center gap-2">
-                        <input type="radio"
-                               name="user_status"
-                               value="0"
-                               {{ old('user_status', $user->user_status) == 0 ? 'checked' : '' }}>
-                        <span class="text-sm">Disabled</span>
-                    </label>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Actions -->
-        <div class="mt-8 flex justify-end gap-3">
-            <a href="{{ route('admin.users') }}"
-               class="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
-                Cancel
+            <a href="{{ route('admin.users') }}" class="text-sm text-gray-600 hover:text-gray-800">
+                ← Back to Users
             </a>
-
-            <button type="submit"
-                    class="px-6 py-2 rounded-lg bg-pbmc text-white text-sm font-semibold hover:opacity-90">
-                Save Changes
-            </button>
         </div>
 
-    </form>
+        <form method="POST" action="{{ route('admin.users.update', ['user' => $user->id]) }}">
 
-</div>
+            @csrf
+            @method('PUT')
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Name -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Full Name</label>
+                    <input type="text" name="name" value="{{ old('name', $user->name) }}"
+                        class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" name="email" value="{{ old('email', $user->email) }}"
+                        class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                </div>
+
+                <!-- Department (LOCKED) -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Department</label>
+                    <select name="department" class="w-full rounded-lg border px-4 py-2.5 text-sm bg-white">
+                        <option value="">Select department</option>
+
+                        @php $dept = old('department', $user->department); @endphp
+
+                        @foreach (config('departments') as $d)
+                            <option value="{{ $d }}" {{ $dept === $d ? 'selected' : '' }}>
+                                {{ $d }}{{ $d === 'Administration' ? ' (Drivers)' : '' }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Job Title -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Job Title</label>
+                    <input type="text" name="job_title" value="{{ old('job_title', $user->job_title) }}"
+                        class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Phone Number</label>
+                    <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}"
+                        class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                </div>
+
+                <!-- User Type -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">User Role</label>
+                    <select name="user_type" class="w-full rounded-lg border px-4 py-2.5 text-sm">
+                        <option value="user" {{ old('user_type', $user->user_type) === 'user' ? 'selected' : '' }}>
+                            User
+                        </option>
+                        <option value="admin" {{ old('user_type', $user->user_type) === 'admin' ? 'selected' : '' }}>
+                            Admin
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2">Account Status</label>
+                    <div class="flex items-center gap-6">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="user_status" value="1"
+                                {{ old('user_status', $user->user_status) == 1 ? 'checked' : '' }}>
+                            <span class="text-sm">Active</span>
+                        </label>
+
+                        <label class="inline-flex items-center gap-2">
+                            <input type="radio" name="user_status" value="0"
+                                {{ old('user_status', $user->user_status) == 0 ? 'checked' : '' }}>
+                            <span class="text-sm">Disabled</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{{ route('admin.users') }}" class="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                    class="px-6 py-2 rounded-lg bg-pbmc text-white text-sm font-semibold hover:opacity-90">
+                    Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
 @endsection
